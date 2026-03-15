@@ -1,5 +1,5 @@
 # Bn2flow
-Bangla code to flowchart and run.
+> Bangla code to flowchart and run.
 
 ---
 
