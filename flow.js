@@ -34,6 +34,7 @@ function banglaToJS(lines){
         .replace(/চলক/g,"let")
         .replace(/ধ্রুবক/g,"const")
         .replace(/দেখাও/g,"print")
+        .replace(/নাও/g,"input")
         .replace(/যদি/g,"if")
         .replace(/নাহলে/g,"else")
         .replace(/যতক্ষণ/g,"while")
