@@ -1,0 +1,47 @@
+body {
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: 'Hind Siliguri', sans-serif !important;
+}
+
+.logo { font-weight: 600; color: orange; }
+.logo span { color: #d946ef; }
+
+/* লাইনের গ্যাপ দূর করার মূল কোড */
+.CodeMirror {
+    height: 300px !important;
+    font-size: 16px;
+    line-height: 1.0 !important;
+    background: #282a36 !important;
+}
+.CodeMirror-lines { padding: 4px 0 !important; }
+.CodeMirror pre.CodeMirror-line { padding: 0 10px !important; margin: 0 !important; }
+
+.editor-section { background: #1e293b; border-radius: 12px; overflow: hidden; }
+.editor-title { background: #334155; padding: 8px 15px; font-size: 0.8rem; color: #94a3b8; }
+
+.btn-group-custom { display: flex; padding: 10px; gap: 8px; background: #0f172a; }
+.btn-group-custom button { flex: 1; font-weight: bold; border-radius: 8px; }
+
+.preview-card { background: #1e293b; padding: 15px; border-radius: 12px; min-height: 350px; }
+.label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
+
+#flowchart {
+    background: white;
+    border-radius: 8px;
+    min-height: 300px;
+    padding: 15px;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+}
+
+pre {
+    background: #020617;
+    color: #38bdf8;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.0 !important;
+}
