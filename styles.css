@@ -15,7 +15,7 @@ body {
     background: #282a36 !important;
 }
 .CodeMirror-lines { padding: 4px 0 !important; }
-.CodeMirror pre.CodeMirror-line { padding: 0 10px !important; margin: 0 !important; color: orchid;}
+.CodeMirror pre.CodeMirror-line { padding: 0 10px !important; margin: 0 !important; color: green;}
 
 .editor-section { background: #1e293b; border-radius: 12px; overflow: hidden; }
 .editor-title { background: #334155; padding: 8px 15px; font-size: 0.8rem; color: #94a3b8; }
