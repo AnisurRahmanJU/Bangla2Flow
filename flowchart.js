@@ -55,7 +55,8 @@ function banglaToJS(code){
     .replace(/চেষ্টা/g,"try")
     .replace(/ধরো/g,"catch")
     .replace(/শেষ/g,"finally")
-    .replace(/ছোড়ো/g,"throw");
+    .replace(/ছোড়ো/g,"throw")
+    .replace(/দৈর্ঘ্য/g, "length");
 }
 
 // ================== FLOWCHART ==================
