@@ -157,7 +157,7 @@ function buildFlow(ast) {
         edges.push(`${dCond}(yes)->${dStart}`);
         return dCond+"(no)";
 
-      case "ForStatement":
+     /** case "ForStatement":
         const fInit = walk(node.init, prev);
         const fId = newId("for");
         nodes.push(`${fId}=>condition: লুপ (${getTextBN(node.test)})`);
@@ -165,6 +165,23 @@ function buildFlow(ast) {
         const fEnd = walk(node.body, fId+"(yes)");
         edges.push(`${fEnd}(left)->${fId}`);
         return fId+"(no)";
+        */
+  case "ForStatement":
+  const fInit = walk(node.init, prev);
+
+  const fCond = newId("forCond");
+  nodes.push(`${fCond}=>condition: লুপ (${getTextBN(node.test)})`);
+  edges.push(`${fInit}->${fCond}`);
+
+  const fBodyEnd = walk(node.body, fCond + "(yes)");
+
+  const fUpdate = newId("forUpdate");
+  nodes.push(`${fUpdate}=>operation: ${getTextBN(node.update)}`);
+  edges.push(`${fBodyEnd}->${fUpdate}`);
+
+  edges.push(`${fUpdate}->${fCond}`);
+
+  return fCond + "(no)";
 
       case "ForOfStatement":
         const foId = newId("fo");
