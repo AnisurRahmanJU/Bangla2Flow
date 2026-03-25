@@ -55,37 +55,5 @@
 </main>
 
 <script src="flowchart.js"></script>
-<script>
-(function() {
-    // 1. Function to convert 0-9 to ০-৯
-    function toBN(text) {
-        if (text === null || text === undefined) return "";
-        const engToBn = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
-        return text.toString().replace(/[0-9]/g, d => engToBn[d]);
-    }
-
-    // 2. Function to convert true/false to সত্য/মিথ্যা
-    function convertBoolToBangla(val) {
-        if (val === true) return 'সত্য';
-        if (val === false) return 'মিথ্যা';
-        return val;
-    }
-
-    // 3. Hijack console.log to show the result in your <pre id="console">
-    const consoleElement = document.getElementById('console');
-    
-    console.log = function(...args) {
-        args.forEach(arg => {
-            // First convert Boolean, then convert Numbers to Bangla
-            let result = convertBoolToBangla(arg);
-            let finalOutput = toBN(result);
-            
-            consoleElement.innerHTML += `<span>${finalOutput}</span> `;
-        });
-        consoleElement.innerHTML += `\n`; // New line for next log
-        consoleElement.scrollTop = consoleElement.scrollHeight;
-    };
-})();
-</script>
 </body>
 </html>
