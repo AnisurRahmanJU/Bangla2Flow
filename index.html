@@ -59,12 +59,12 @@
   // বাংলা সংখ্যার ম্যাপ
   const banglaDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
 
-  // একটি সংখ্যা বা string কে বাংলা সংখ্যায় রূপান্তর
+  // ইংরেজি সংখ্যাকে বাংলা সংখ্যায় রূপান্তর
   function toBanglaNumber(input) {
     return input.toString().replace(/\d/g, d => banglaDigits[d]);
   }
 
-  // কনসোল আউটপুটকে বাংলা ফরম্যাটে দেখানোর জন্য
+  // কনসোলে বাংলা আউটপুট
   function logToConsole(value) {
     let output = value;
 
@@ -73,7 +73,7 @@
     } else if (typeof value === 'number') {
       output = toBanglaNumber(value);
     } else if (typeof value === 'string') {
-      // স্ট্রিং এ সংখ্যা থাকলে তা বাংলা সংখ্যায় রূপান্তর
+      // স্ট্রিং-এর মধ্যে সংখ্যা থাকলে বাংলা সংখ্যা হিসেবে দেখান
       output = value.replace(/\d+/g, match => toBanglaNumber(match));
     }
 
@@ -81,17 +81,19 @@
     consoleEl.textContent += output + '\n';
   }
 
-  // runCode ফাংশনের জন্য override (উদাহরণ)
+  // কোড রান করা (CodeMirror ব্যবহার করে)
   function runCode() {
-    // editor থেকে কোড নিন (CodeMirror ব্যবহার করে)
     const code = editor.getValue();
     try {
-      const result = eval(code);
-      logToConsole(result);
+      // নতুন ফাংশন ব্যবহার করে নিরাপদভাবে রান
+      const func = new Function('log', code);
+      const result = func(logToConsole);
+      if (result !== undefined) logToConsole(result);
     } catch (e) {
       logToConsole('ত্রুটি: ' + e.message);
     }
   }
 </script>
+
 </body>
 </html>
