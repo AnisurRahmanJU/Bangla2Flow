@@ -108,38 +108,33 @@ function generateFlowchart() {
 }
 
 // ================== DOWNLOAD FLOWCHART ==================
+// ✅ High-Resolution PNG Download
 function downloadImage() {
-downloadFlowchart();
   const svg = document.querySelector("#output svg");
-  if (!svg) {
-    alert("আগে ফ্লোচার্ট তৈরি করুন!");
-    return;
-  }
+  if (!svg) { alert("Please generate a flowchart first!"); return; }
 
-  const serializer = new XMLSerializer();
-  const source = serializer.serializeToString(svg);
-
+  const svgData = new XMLSerializer().serializeToString(svg);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
+  const img = new Image();
 
   const svgSize = svg.getBoundingClientRect();
-  canvas.width = svgSize.width * 2;
+  canvas.width = svgSize.width * 2; 
   canvas.height = svgSize.height * 2;
 
-  const img = new Image();
-  img.onload = () => {
-    ctx.fillStyle = "#fff";
+  img.onload = function () {
+    ctx.fillStyle = "white"; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
+    const pngUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
-    link.download = "flowchart.png";
-    link.href = canvas.toDataURL("image/png");
+    link.href = pngUrl;
+    link.download = "image.png";
     link.click();
   };
-
-  img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(source)));
+  img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
 }
+
 
 // ================== AST WALK ==================
 function buildFlow(ast) {
@@ -172,21 +167,7 @@ function buildFlow(ast) {
       case "IfStatement":
         const dId = newId("dec");
         nodes.push(`${dId}=>condition: যদি (${getTextBN(node.test)})`);
-        edges.push(`${prev}->${dId}`);
-        const yesEnd = walk(node.consequent, dId + "(yes)");
-        const noEnd = node.alternate ? walk(node.alternate, dId + "(no)") : dId + "(no)";
-        const join = newId("merge");
-        nodes.push(`${join}=>operation: পরবর্তী`);
-        edges.push(`${yesEnd}->${join}`);
-        edges.push(`${noEnd}->${join}`);
-        return join;
-
-      case "WhileStatement":
-        const wId = newId("while");
-        nodes.push(`${wId}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
-        edges.push(`${prev}->${wId}`);
-        const wEnd = walk(node.body, wId+"(yes)");
-        edges.push(`${wEnd}(left)->${wId}`);
+        edges.push(`${prev}->${dId} OKwId}`);
         return wId+"(no)";
 
       case "DoWhileStatement":
