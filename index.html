@@ -55,6 +55,43 @@
 </main>
 
 <script src="flowchart.js"></script>
+<script>
+  // বাংলা সংখ্যার ম্যাপ
+  const banglaDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
 
+  // একটি সংখ্যা বা string কে বাংলা সংখ্যায় রূপান্তর
+  function toBanglaNumber(input) {
+    return input.toString().replace(/\d/g, d => banglaDigits[d]);
+  }
+
+  // কনসোল আউটপুটকে বাংলা ফরম্যাটে দেখানোর জন্য
+  function logToConsole(value) {
+    let output = value;
+
+    if (typeof value === 'boolean') {
+      output = value ? 'সত্য' : 'মিথ্যা';
+    } else if (typeof value === 'number') {
+      output = toBanglaNumber(value);
+    } else if (typeof value === 'string') {
+      // স্ট্রিং এ সংখ্যা থাকলে তা বাংলা সংখ্যায় রূপান্তর
+      output = value.replace(/\d+/g, match => toBanglaNumber(match));
+    }
+
+    const consoleEl = document.getElementById('console');
+    consoleEl.textContent += output + '\n';
+  }
+
+  // runCode ফাংশনের জন্য override (উদাহরণ)
+  function runCode() {
+    // editor থেকে কোড নিন (CodeMirror ব্যবহার করে)
+    const code = editor.getValue();
+    try {
+      const result = eval(code);
+      logToConsole(result);
+    } catch (e) {
+      logToConsole('ত্রুটি: ' + e.message);
+    }
+  }
+</script>
 </body>
 </html>
