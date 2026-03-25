@@ -55,5 +55,47 @@
 </main>
 
 <script src="flowchart.js"></script>
+<script>
+function runCode() {
+  const consoleEl = document.getElementById("console");
+  consoleEl.innerText = "";
+
+  // মূল কোডকে JS এ রূপান্তর
+  const code = banglaToJS(editor.getValue());
+
+  // Console log override
+  const originalLog = console.log;
+
+  console.log = (...args) => {
+    const bnArgs = args.map(arg => {
+      if (typeof arg === "number") {
+        // সংখ্যা বাংলায় রূপান্তর
+        return enNumberToBn(arg);
+      } else if (typeof arg === "boolean") {
+        // true/false -> সত্য/মিথ্যা
+        return arg ? "সত্য" : "মিথ্যা";
+      } else {
+        return arg;
+      }
+    });
+    consoleEl.innerText += bnArgs.join(" ") + "\n";
+  };
+
+  try {
+    eval(code);
+  } catch (err) {
+    consoleEl.innerText += "Error: " + err.message;
+  }
+
+  // পুরোনো console.log ফিরিয়ে দাও
+  console.log = originalLog;
+}
+
+// Helper function: English number -> Bangla number
+function enNumberToBn(text) {
+  const map = { "0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯" };
+  return text.toString().replace(/[0-9]/g, d => map[d]);
+}
+</script>
 </body>
 </html>
