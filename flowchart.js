@@ -220,6 +220,15 @@ function buildFlow(ast) {
         edges.push(`${fiEnd}(left)->${fiId}`);
         return fiId+"(no)";
 
+    case "WhileStatement": {
+    const wId = newId("while");
+    nodes.push(`${wId}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
+    edges.push(`${prev}->${wId}`);
+    const wEnd = walk(node.body, wId + "(yes)");
+    edges.push(`${wEnd}(left)->${wId}`);
+    return wId + "(no)";
+}
+
       case "SwitchStatement":
         const sId = newId("switch");
         nodes.push(`${sId}=>condition: সুইচ (${getTextBN(node.discriminant)})`);
