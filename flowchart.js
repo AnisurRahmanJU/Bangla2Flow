@@ -251,9 +251,9 @@ function buildFlow(ast) {
         nodes.push(`${cId}=>operation: বাদ`);
         edges.push(`${prev}->${cId}`);
         return cId;*/
-        case "ContinueStatement":
+  case "ContinueStatement":
   const cId = newId("cont");
-  nodes.push(`${cId}=>operation: বাদ|process`);
+  nodes.push(`${cId}=>operation: বাদ`);
   edges.push(`${prev}->${cId}`);
 
   if(currentLoopUpdate){
@@ -261,7 +261,7 @@ function buildFlow(ast) {
   }
 
   return cId;
-
+        
       case "TryStatement":
         const tStart = newId("try");
         nodes.push(`${tStart}=>operation: চেষ্টা`);
