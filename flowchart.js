@@ -128,7 +128,7 @@ function downloadImage() {
     const pngUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = pngUrl;
-    link.download = "ফ্লোচার্ট.png";
+    link.download = "flowchart.png";
     link.click();
   };
   img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
