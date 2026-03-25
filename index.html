@@ -55,7 +55,41 @@
 </main>
 
 <script src="flowchart.js"></script>
+<script>
+  const banglaDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
 
+  function toBanglaNumber(input) {
+    return input.toString().replace(/\d/g, d => banglaDigits[d]);
+  }
 
+  function logToConsole(value) {
+    let output = value;
+
+    if (typeof value === 'boolean') {
+      output = value ? 'সত্য' : 'মিথ্যা';
+    } else if (typeof value === 'number') {
+      output = toBanglaNumber(value);
+    } else if (typeof value === 'string') {
+      output = value.replace(/\d+/g, match => toBanglaNumber(match));
+    }
+
+    const consoleEl = document.getElementById('console');
+    consoleEl.textContent += output + '\n';
+  }
+
+  // নিরাপদভাবে কোড রান (স্ট্রিং আউটপুট)
+  function runCode() {
+    const code = editor.getValue();
+
+    try {
+      // কোডে যেকোনো সংখ্যা বা boolean সরাসরি লগ করা
+      // এখানে eval সরাসরি ব্যবহার করা হচ্ছে না
+      const result = Function('"use strict"; return (' + code + ')')();
+      logToConsole(result);
+    } catch (e) {
+      logToConsole('ত্রুটি: ' + e.message);
+    }
+  }
+</script>
 </body>
 </html>
