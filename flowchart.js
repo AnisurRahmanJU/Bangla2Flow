@@ -167,21 +167,22 @@ function buildFlow(ast) {
         return fId+"(no)";
         */
   case "ForStatement":
-  const fInit = walk(node.init, prev);
+  const fInit = node.init ? walk(node.init, prev) : prev;
 
-  const fCond = newId("forCond");
-  nodes.push(`${fCond}=>condition: লুপ (${getTextBN(node.test)})`);
-  edges.push(`${fInit}->${fCond}`);
+  const fCondId = newId("forCond");
+  nodes.push(`${fCondId}=>condition: FOR: ${getText(node.test)}|decision`);
+  edges.push(`${fInit}->${fCondId}`);
 
-  const fBodyEnd = walk(node.body, fCond + "(yes)");
+  const fBodyEnd = walk(node.body, fCondId + "(yes)");
 
-  const fUpdate = newId("forUpdate");
-  nodes.push(`${fUpdate}=>operation: ${getTextBN(node.update)}`);
-  edges.push(`${fBodyEnd}->${fUpdate}`);
+  const fUpdId = newId("upd");
+  const updText = node.update ? getText(node.update) : "";
+  nodes.push(`${fUpdId}=>operation: ${updText}|process`);
+  edges.push(`${fBodyEnd}->${fUpdId}`);
 
-  edges.push(`${fUpdate}->${fCond}`);
+  edges.push(`${fUpdId}(left)->${fCondId}`);
 
-  return fCond + "(no)";
+  return fCondId + "(no)";
 
       case "ForOfStatement":
         const foId = newId("fo");
@@ -238,11 +239,21 @@ function buildFlow(ast) {
         edges.push(`${prev}->${bId}`);
         return bId;
 
-      case "ContinueStatement":
+     /* case "ContinueStatement":
         const cId = newId("cont");
         nodes.push(`${cId}=>operation: বাদ`);
         edges.push(`${prev}->${cId}`);
-        return cId;
+        return cId;*/
+        case "ContinueStatement":
+  const cId = newId("cont");
+  nodes.push(`${cId}=>operation: বাদ|process`);
+  edges.push(`${prev}->${cId}`);
+
+  if(currentLoopUpdate){
+    edges.push(`${cId}->${currentLoopUpdate}`);
+  }
+
+  return cId;
 
       case "TryStatement":
         const tStart = newId("try");
