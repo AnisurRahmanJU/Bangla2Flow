@@ -163,10 +163,6 @@ function buildFlow(ast) {
         nodes.push(`${fId}=>condition: লুপ (${getTextBN(node.test)})`);
         edges.push(`${fInit}->${fId}`);
         const fEnd = walk(node.body, fId+"(yes)");
-        const fUpdId = newId("upd");
-        nodes.push(`${fUpdId}=>operation: ${getText(node.update)}|process`);
-        edges.push(`${fBodyEnd}->${fUpdId}`);
-        edges.push(`${fUpdId}(left)->${fCondId}`);
         edges.push(`${fEnd}(left)->${fId}`);
         return fId+"(no)";
 
@@ -295,29 +291,7 @@ function getTextBN(node){
   }
 }
 
-function getText(node) {
-  if (!node) return "";
-  switch(node.type) {
-    case "Identifier": return node.name;
-    case "Literal": return JSON.stringify(node.value);
-    case "BinaryExpression": return `${getText(node.left)} ${node.operator} ${getText(node.right)}`;
-    case "UpdateExpression": return node.prefix ? `${node.operator}${getText(node.argument)}` : `${getText(node.argument)}${node.operator}`;
-    case "AssignmentExpression": return `${getText(node.left)} ${node.operator} ${getText(node.right)}`;
-    case "ArrayExpression": 
-      return `[${node.elements.map(getText).join(", ")}]`;
-    case "ObjectExpression":
-      const pMap = node.properties.map(p => `${p.key.name || p.key.value}: ${getText(p.value)}`);
-      return `{ ${pMap.join(", ")} }`;
-    case "MemberExpression": 
-      const prop = node.computed ? `[${getText(node.property)}]` : `.${node.property.name}`;
-      return `${getText(node.object)}${prop}`;
-    case "CallExpression": 
-      return `${getText(node.callee)}(${node.arguments.map(getText).join(", ")})`;
-    case "VariableDeclarator":
-      return `${node.id.name} = ${getText(node.init)}`;
-    default: return "";
-  }
-}
+
 
 // ================== RUN ==================
 function runCode(){
