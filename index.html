@@ -97,5 +97,60 @@ function enNumberToBn(text) {
   return text.toString().replace(/[0-9]/g, d => map[d]);
 }
 </script>
+  
+<script>
+// ================== SYNTAX HIGHLIGHT ==================
+const customOverlay = {
+  token: function(stream) {
+
+    // Comment
+    if (stream.match(/^\/\/.*/)) return "comment-custom";
+
+    // String
+    if (stream.match(/^"(?:[^"\\]|\\.)*"/) || stream.match(/^'(?:[^'\\]|\\.)*'/)) {
+      return "string-custom";
+    }
+
+    // Bangla Keywords (orchid)
+    if (stream.match(/^(ধরি|যদি|নাহলে যদি|নাহলে|চলক|ধ্রুবক|সত্য|মিথ্যা|এবং|অথবা|সুইচ|কেস|ডিফল্ট|নাল|বাদ|যতক্ষণ|করো|থামো|মধ্যে|ফেরত|স্ট্রাক্ট|নতুন|ফাংশন|লুপ)(?![\u0980-\u09FF\w])/)) {
+      return "keyword-custom";
+    }
+
+    // Function call (blue)
+    if (stream.match(/^([\u0980-\u09FF\w_]+)\s*\(/)) {
+      return "func-call";
+    }
+
+    // Object after dot (orange)
+    if (stream.match(/^\.\s*([\u0980-\u09FF\w_]+)/)) {
+      return "object-access";
+    }
+
+    // Bangla number (limegreen)
+    if (stream.match(/^[০-৯]+(\.[০-৯]+)?/)) {
+      return "bangla-number";
+    }
+
+    stream.next();
+    return null;
+  }
+};
+
+// ================== APPLY OVERLAY AFTER EDITOR LOAD ==================
+function applyCustomHighlight() {
+  if (editor) {
+    editor.addOverlay(customOverlay);
+  } else {
+    console.error("Editor not initialized!");
+  }
+}
+
+// ================== FIX: WAIT UNTIL EDITOR READY ==================
+window.addEventListener("load", function () {
+  setTimeout(() => {
+    applyCustomHighlight();
+  }, 200); // ছোট delay যাতে editor ready হয়
+});
+</script>
 </body>
 </html>
