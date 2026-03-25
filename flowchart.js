@@ -302,7 +302,7 @@ function buildFlow(ast) {
 }
 
 // ================== BN TEXT ==================
-function getTextBN(node){
+/*function getTextBN(node){
   if(!node) return "";
 
   switch(node.type){
@@ -317,8 +317,48 @@ function getTextBN(node){
     case "CallExpression": return `${getTextBN(node.callee)}(${node.arguments.map(getTextBN).join(", ")})`;
     default: return "";
   }
-}
+}*/
 
+function getTextBN(node){
+  if(!node) return "";
+
+  switch(node.type){
+
+    case "Identifier":
+      return node.name;
+
+    case "Literal":
+      return enNumberToBn(node.value);
+
+    case "BinaryExpression":
+      return `${getTextBN(node.left)} ${node.operator} ${getTextBN(node.right)}`;
+
+    case "AssignmentExpression":
+      return `${getTextBN(node.left)} ${node.operator} ${getTextBN(node.right)}`;
+
+    case "UpdateExpression":
+      return node.prefix
+        ? `${node.operator}${getTextBN(node.argument)}`
+        : `${getTextBN(node.argument)}${node.operator}`;
+
+    case "UnaryExpression":
+      return `${node.operator}${getTextBN(node.argument)}`;
+
+    case "ArrayExpression":
+      return `[${node.elements.map(getTextBN).join(", ")}]`;
+
+    case "MemberExpression":
+      if(node.computed)
+        return `${getTextBN(node.object)}[${getTextBN(node.property)}]`;
+      return `${getTextBN(node.object)}.${getTextBN(node.property)}`;
+
+    case "CallExpression":
+      return `${getTextBN(node.callee)}(${node.arguments.map(getTextBN).join(", ")})`;
+
+    default:
+      return "";
+  }
+}
 
 
 // ================== RUN ==================
