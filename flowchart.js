@@ -108,7 +108,7 @@ function generateFlowchart() {
 }
 
 // ================== DOWNLOAD FLOWCHART ==================
- function downloadImage() {
+function downloadImage() {
   const svg = document.querySelector("#output svg");
   if (!svg) { alert("Please generate a flowchart first!"); return; }
 
@@ -128,12 +128,11 @@ function generateFlowchart() {
     const pngUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = pngUrl;
-    link.download = "image.png";
+    link.download = "flowchart.png";
     link.click();
   };
   img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
 }
-
 
 // ================== AST WALK ==================
 function buildFlow(ast) {
@@ -148,12 +147,13 @@ function buildFlow(ast) {
     switch(node.type) {
 
       case "Program":
-      case "BlockStatement":
+      case "BlockStatement": {
         let curr = prev;
         node.body.forEach(n => curr = walk(n, curr));
         return curr;
+      }
 
-      case "VariableDeclaration":
+      case "VariableDeclaration": {
         const vId = newId("var");
         const vText = node.declarations.map(d => {
           const initVal = d.init ? getTextBN(d.init) : "undefined";
@@ -162,14 +162,34 @@ function buildFlow(ast) {
         nodes.push(`${vId}=>operation: ${vText}`);
         edges.push(`${prev}->${vId}`);
         return vId;
+      }
 
-      case "IfStatement":
+      case "IfStatement": {
         const dId = newId("dec");
         nodes.push(`${dId}=>condition: যদি (${getTextBN(node.test)})`);
-        edges.push(`${prev}->${dId} OKwId}`);
-        return wId+"(no)";
+        edges.push(`${prev}->${dId}`);
 
-      case "DoWhileStatement":
+        const yesEnd = walk(node.consequent, dId + "(yes)");
+        const noEnd = node.alternate ? walk(node.alternate, dId + "(no)") : dId + "(no)";
+
+        const join = newId("merge");
+        nodes.push(`${join}=>operation: পরবর্তী`);
+        edges.push(`${yesEnd}->${join}`);
+        edges.push(`${noEnd}->${join}`);
+
+        return join;
+      }
+
+      case "WhileStatement": {
+        const wId = newId("while");
+        nodes.push(`${wId}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
+        edges.push(`${prev}->${wId}`);
+        const wEnd = walk(node.body, wId + "(yes)");
+        edges.push(`${wEnd}(left)->${wId}`);
+        return wId + "(no)";
+      }
+
+      case "DoWhileStatement": {
         const dStart = newId("do");
         nodes.push(`${dStart}=>operation: করো`);
         edges.push(`${prev}->${dStart}`);
@@ -179,63 +199,57 @@ function buildFlow(ast) {
         edges.push(`${dEnd}->${dCond}`);
         edges.push(`${dCond}(yes)->${dStart}`);
         return dCond+"(no)";
+      }
 
-      case "ForStatement":
-  const fInit = node.init ? walk(node.init, prev) : prev;
+      case "ForStatement": {
+        const fInit = node.init ? walk(node.init, prev) : prev;
 
-  const fCond = newId("for");
-  const condText = node.test ? getTextBN(node.test) : "true";
-  nodes.push(`${fCond}=>condition: লুপ (${condText})`);
-  edges.push(`${fInit}->${fCond}`);
+        const fCond = newId("for");
+        const condText = node.test ? getTextBN(node.test) : "true";
+        nodes.push(`${fCond}=>condition: লুপ (${condText})`);
+        edges.push(`${fInit}->${fCond}`);
 
-  const prevUpdate = currentLoopUpdate;
-  const fUpdate = newId("upd");
-  currentLoopUpdate = fUpdate;
+        const prevUpdate = currentLoopUpdate;
+        const fUpdate = newId("upd");
+        currentLoopUpdate = fUpdate;
 
-  const fBodyEnd = walk(node.body, fCond + "(yes)");
+        const fBodyEnd = walk(node.body, fCond + "(yes)");
 
-  const updText = node.update ? getTextBN(node.update) : "";
-  nodes.push(`${fUpdate}=>operation: ${updText}`);
-  edges.push(`${fBodyEnd}->${fUpdate}`);
+        const updText = node.update ? getTextBN(node.update) : "";
+        nodes.push(`${fUpdate}=>operation: ${updText}`);
+        edges.push(`${fBodyEnd}->${fUpdate}`);
+        edges.push(`${fUpdate}(left)->${fCond}`);
 
-  edges.push(`${fUpdate}(left)->${fCond}`);
+        currentLoopUpdate = prevUpdate;
+        return fCond + "(no)";
+      }
 
-  currentLoopUpdate = prevUpdate;
-
-  return fCond + "(no)";
-  
-      case "ForOfStatement":
+      case "ForOfStatement": {
         const foId = newId("fo");
         nodes.push(`${foId}=>condition: প্রতিটি (${getTextBN(node.right)})`);
         edges.push(`${prev}->${foId}`);
         const foEnd = walk(node.body, foId+"(yes)");
         edges.push(`${foEnd}(left)->${foId}`);
         return foId+"(no)";
+      }
 
-      case "ForInStatement":
+      case "ForInStatement": {
         const fiId = newId("fi");
         nodes.push(`${fiId}=>condition: প্রতিটি_ইন (${getTextBN(node.right)})`);
         edges.push(`${prev}->${fiId}`);
         const fiEnd = walk(node.body, fiId+"(yes)");
         edges.push(`${fiEnd}(left)->${fiId}`);
         return fiId+"(no)";
+      }
 
-    case "WhileStatement": {
-    const wId = newId("while");
-    nodes.push(`${wId}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
-    edges.push(`${prev}->${wId}`);
-    const wEnd = walk(node.body, wId + "(yes)");
-    edges.push(`${wEnd}(left)->${wId}`);
-    return wId + "(no)";
-}
-
-      case "SwitchStatement":
+      case "SwitchStatement": {
         const sId = newId("switch");
         nodes.push(`${sId}=>condition: সুইচ (${getTextBN(node.discriminant)})`);
         edges.push(`${prev}->${sId}`);
         let afterSwitch = newId("merge");
         nodes.push(`${afterSwitch}=>operation: পরবর্তী`);
         let lastCaseEnd = null;
+
         node.cases.forEach((c,index)=>{
           const cLabel = c.test ? `কেস: ${getTextBN(c.test)}` : "ডিফল্ট";
           const cId = newId("case");
@@ -247,28 +261,33 @@ function buildFlow(ast) {
           edges.push(`${ce}->${afterSwitch}`);
           lastCaseEnd = cId;
         });
+
         if(lastCaseEnd) edges.push(`${lastCaseEnd}(no)->${afterSwitch}`);
         return afterSwitch;
+      }
 
-      case "FunctionDeclaration":
+      case "FunctionDeclaration": {
         const funcId = newId("func");
         nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}`);
         edges.push(`${prev}->${funcId}`);
         return walk(node.body, funcId);
+      }
 
-      case "ReturnStatement":
+      case "ReturnStatement": {
         const rId = newId("ret");
         nodes.push(`${rId}=>inputoutput: ফেরত ${getTextBN(node.argument)}`);
         edges.push(`${prev}->${rId}`);
         return rId;
+      }
 
-      case "BreakStatement":
+      case "BreakStatement": {
         const bId = newId("brk");
         nodes.push(`${bId}=>operation: থামো`);
         edges.push(`${prev}->${bId}`);
         return bId;
+      }
 
-      case "ContinueStatement":
+      case "ContinueStatement": {
         const cId = newId("cont");
         nodes.push(`${cId}=>operation: বাদ`);
         edges.push(`${prev}->${cId}`);
@@ -276,8 +295,9 @@ function buildFlow(ast) {
           edges.push(`${cId}->${currentLoopUpdate}`);
         }
         return cId;
+      }
 
-      case "TryStatement":
+      case "TryStatement": {
         const tStart = newId("try");
         nodes.push(`${tStart}=>operation: চেষ্টা`);
         edges.push(`${prev}->${tStart}`);
@@ -294,14 +314,16 @@ function buildFlow(ast) {
           walk(node.finalizer,fId);
         }
         return tEnd;
+      }
 
-      case "ThrowStatement":
+      case "ThrowStatement": {
         const thId = newId("throw");
         nodes.push(`${thId}=>operation: ছোড়ো ${getTextBN(node.argument)}`);
         edges.push(`${prev}->${thId}`);
         return thId;
+      }
 
-      case "ExpressionStatement":
+      case "ExpressionStatement": {
         const eId = newId("out");
         let txt = getTextBN(node.expression);
         txt = txt.replace("console.log","দেখাও");
@@ -311,6 +333,7 @@ function buildFlow(ast) {
         nodes.push(`${eId}=>inputoutput: ${txt}`);
         edges.push(`${prev}->${eId}`);
         return eId;
+      }
 
       default:
         return prev;
@@ -357,5 +380,4 @@ function runCode(){
 }
 
 // ================== DOWNLOAD BUTTON ==================
-document.getElementById("downloadBtn").addEventListener("click", downloadFlowchart);
-        
+document.getElementById("downloadBtn")?.addEventListener("click", downloadImage);
