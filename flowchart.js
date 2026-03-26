@@ -427,27 +427,39 @@ function getTextBN(node){
     case "AssignmentExpression":
       return `${getTextBN(node.left)} = ${getTextBN(node.right)}`;
 
-    case "ArrayExpression":
-      return `[${node.elements.map(getTextBN).join(", ")}]`;
-
     case "UpdateExpression":
       return node.prefix
         ? `${node.operator}${getTextBN(node.argument)}`
         : `${getTextBN(node.argument)}${node.operator}`;
 
+    case "ArrayExpression":
+      return `[${node.elements.map(el => getTextBN(el)).join(", ")}]`;
+
     case "MemberExpression":
-      if(node.computed)
+      if(node.computed){
         return `${getTextBN(node.object)}[${getTextBN(node.property)}]`;
+      }
       return `${getTextBN(node.object)}.${getTextBN(node.property)}`;
 
-    case "CallExpression":
-      return `${getTextBN(node.callee)}(${node.arguments.map(getTextBN).join(", ")})`;
+    case "CallExpression": {
+      const callee = getTextBN(node.callee);
+      const args = node.arguments.map(arg => getTextBN(arg)).join(", ");
+      return `${callee}(${args})`;
+    }
+
+    case "ConditionalExpression": // ternary
+      return `${getTextBN(node.test)} ? ${getTextBN(node.consequent)} : ${getTextBN(node.alternate)}`;
+
+    case "ObjectExpression":
+      return `{ ${node.properties.map(p => `${getTextBN(p.key)}: ${getTextBN(p.value)}`).join(", ")} }`;
+
+    case "Property":
+      return `${getTextBN(node.key)}: ${getTextBN(node.value)}`;
 
     default:
       return "";
   }
 }
-
 
 // ================== RUN ==================
 function runCode(){
