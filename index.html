@@ -103,9 +103,10 @@ function enNumberToBn(text) {
 const customOverlay = {
   token: function(stream) {
     
-    // Variable Declaration
-    if (stream.match(/^[a-zA-Z_][a-zA-Z0-9_]*/)) return "variable-custom";
-
+    // Variable Declaration (Bangla)
+   if (stream.match(/^[a-zA-Z_\u0980-\u09FF][a-zA-Z0-9_\u0980-\u09FF\u09E6-\u09EF]*/)) {
+    return "variable-custom";
+     }
     // Comment
     if (stream.match(/^\/\/.*/)) return "comment-custom";
 
