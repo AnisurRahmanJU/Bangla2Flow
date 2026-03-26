@@ -111,12 +111,12 @@ const customOverlay = {
       return "string-custom";
     }
 
-    // Bangla Keywords (orchid)
+    // Bangla Keywords (purple)
     if (stream.match(/^(যদি|নাহলে যদি|নাহলে|চলক|ধ্রুবক|সত্য|মিথ্যা|এবং|অথবা|সুইচ|কেস|ডিফল্ট|নাল|বাদ|যতক্ষণ|করো|থামো|ফেরত|ফাংশন|লুপ)(?![\u0980-\u09FF\w])/)) {
       return "keyword-custom";
     }
 
-    // Function call (purple)
+    // Function call (blue)
     if (stream.match(/^([\u0980-\u09FF\w_]+)\s*\(/)) {
       return "func-call";
     }
@@ -131,7 +131,7 @@ const customOverlay = {
       return "bangla-number";
     }
 
-    //  Variable (blue)
+    //  Variable (gray)
     if (stream.match(/^[a-zA-Z_\u0980-\u09FF][a-zA-Z0-9_\u0980-\u09FF\u09E6-\u09EF]*/)) {
       return "variable-custom";
     }
