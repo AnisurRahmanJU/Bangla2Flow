@@ -102,11 +102,7 @@ function enNumberToBn(text) {
 // ================== SYNTAX HIGHLIGHT ==================
 const customOverlay = {
   token: function(stream) {
-    
-    // Variable Declaration (Bangla)
-   if (stream.match(/^[a-zA-Z_\u0980-\u09FF][a-zA-Z0-9_\u0980-\u09FF\u09E6-\u09EF]*/)) {
-    return "variable-custom";
-     }
+
     // Comment
     if (stream.match(/^\/\/.*/)) return "comment-custom";
 
@@ -120,7 +116,7 @@ const customOverlay = {
       return "keyword-custom";
     }
 
-    // Function call (blue)
+    // Function call (purple)
     if (stream.match(/^([\u0980-\u09FF\w_]+)\s*\(/)) {
       return "func-call";
     }
@@ -133,6 +129,11 @@ const customOverlay = {
     // Bangla number (limegreen)
     if (stream.match(/^[০-৯]+(\.[০-৯]+)?/)) {
       return "bangla-number";
+    }
+
+    //  Variable (blue)
+    if (stream.match(/^[a-zA-Z_\u0980-\u09FF][a-zA-Z0-9_\u0980-\u09FF\u09E6-\u09EF]*/)) {
+      return "variable-custom";
     }
 
     stream.next();
