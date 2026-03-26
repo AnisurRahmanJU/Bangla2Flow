@@ -27,6 +27,7 @@ header {
   overflow: hidden;
   background: #fff;
   margin-bottom: 15px;
+  overflow-x: auto;
 }
 
 /* Button Grid */
@@ -63,6 +64,7 @@ button:active { transform: scale(0.95); }
   align-items: flex-start;
   padding: 15px;
   box-sizing: border-box;
+  overflow-y:auto;
 }
 
 #output svg {
@@ -81,6 +83,7 @@ button:active { transform: scale(0.95); }
   font-size: 13px;
   min-height: 60px;
   white-space: pre-wrap;
+  overflow: auto;
 }
 
 /* --- MOBILE SPECIFIC FIXES --- */
