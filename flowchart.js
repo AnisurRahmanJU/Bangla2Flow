@@ -71,6 +71,7 @@ function banglaToJS(code){
     .replace(/অংশ/g,"slice")
     .replace(/বড়হাতেরঅক্ষর/g,"toUpperCase")
     .replace(/ছোটহাতেরঅক্ষর/g,"toLowerCase")
+    .replace (/উপস্ট্রিং/g, "substr")
     .replace(/নং/g,"Number");
   
 }
