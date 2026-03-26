@@ -109,6 +109,6 @@ button:active { transform: scale(0.95); }
 .cm-keyword-custom { color: orchid; font-weight: 500; }
 .cm-func-call { color: purple; }
 .cm-object-access { color: orange; }
-.cm-bangla-number { color: green; }
+.cm-bangla-number { color: limegreen; }
 .cm-comment-custom { color: gray; }
 .cm-string-custom { color: green; }
