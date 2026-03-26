@@ -106,7 +106,7 @@ button:active { transform: scale(0.95); }
 
 /* Syntax Highlighting*/
 .cm-variable-custom { color: Blue; }
-.cm-keyword-custom { color: purple; font-weight: 500; }
+.cm-keyword-custom { color: orchid; font-weight: 500; }
 .cm-func-call { color: purple; }
 .cm-object-access { color: orange; }
 .cm-bangla-number { color: green; }
