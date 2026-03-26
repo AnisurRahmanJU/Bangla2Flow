@@ -68,7 +68,7 @@ function banglaToJS(code){
     .replace(/প্রতিটি_ইন/g,"for_in")
     .replace(/রাখো/g,"push")
     .replace(/সরাও/g,"pop")
-    .replace(/আংশিক/g,"slice")
+    .replace(/অংশ/g,"slice")
     .replace(/বড়হাতেরঅক্ষর/g,"toUpperCase")
     .replace(/ছোটহাতেরঅক্ষর/g,"toLowerCase"); 
 }
