@@ -109,5 +109,5 @@ button:active { transform: scale(0.95); }
 .cm-func-call { color: blue; }
 .cm-object-access { color: orange; }
 .cm-bangla-number { color: green; }
-.cm-comment-custom { color: gray; font-style: italic; }
+.cm-comment-custom { color: gray; }
 .cm-string-custom { color: green; }
