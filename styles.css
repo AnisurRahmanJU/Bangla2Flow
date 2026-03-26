@@ -105,10 +105,10 @@ button:active { transform: scale(0.95); }
 }
 
 /* Syntax Highlighting*/
-.cm-variable-custom { color: pink; }
+.cm-variable-custom { color: orchid; }
 .cm-keyword-custom { color: purple; font-weight: 500; }
 .cm-func-call { color: blue; }
-.cm-object-access { color: orchid; }
+.cm-object-access { color: orange; }
 .cm-bangla-number { color: limegreen; }
 .cm-comment-custom { color: gray; }
 .cm-string-custom { color: green; }
