@@ -188,7 +188,32 @@ function buildFlow(ast) {
         return join;
       }
 
-      case "WhileStatement": {
+  case "LogicalExpression":{
+  let op = node.operator;
+  if(op === "&&") op = "এবং";
+  if(op === "||") op = "অথবা";
+  return `${getTextBN(node.left)} ${op} ${getTextBN(node.right)}`;
+  }
+  
+  case "BinaryExpression":{
+  return `${getTextBN(node.left)} ${node.operator} ${getTextBN(node.right)}`;
+
+  case "LogicalExpression":
+  let op = node.operator;
+  if(op === "&&") op = "এবং";
+  if(op === "||") op = "অথবা";
+  return `${getTextBN(node.left)} ${op} ${getTextBN(node.right)}`;
+  }
+
+  case "UnaryExpression": {
+  if(node.operator === "!"){
+    return `!(${getTextBN(node.argument)})`;
+  }
+  return `${node.operator}${getTextBN(node.argument)}`;
+  }
+    
+
+       case "WhileStatement": {
         const wId = newId("while");
         nodes.push(`${wId}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
         edges.push(`${prev}->${wId}`);
