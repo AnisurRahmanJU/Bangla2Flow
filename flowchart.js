@@ -361,12 +361,13 @@ function buildFlow(ast) {
 }
 
 // ================== BN TEXT ==================
+/*
 function getTextBN(node){
   if(!node) return "";
 
   switch(node.type){
     case "Identifier": return node.name;
-   /* case "Literal": return enNumberToBn(node.value);*/
+      
   case "Literal":
   if (typeof node.value === "string") {
     return `"${node.value}"`;
@@ -388,7 +389,65 @@ function getTextBN(node){
     case "CallExpression": return `${getTextBN(node.callee)}(${node.arguments.map(getTextBN).join(", ")})`;
     default: return "";
   }
+} 
+*/
+
+function getTextBN(node){
+  if(!node) return "";
+
+  switch(node.type){
+
+    case "Identifier":
+      return node.name;
+
+    case "Literal":
+      if (typeof node.value === "string") {
+        return `"${node.value}"`;
+      }
+      if (typeof node.value === "boolean") {
+        return node.value ? "সত্য" : "মিথ্যা";
+      }
+      return enNumberToBn(node.value);
+
+    case "BinaryExpression":
+      return `${getTextBN(node.left)} ${node.operator} ${getTextBN(node.right)}`;
+
+    case "LogicalExpression":
+      let op = node.operator;
+      if(op === "&&") op = "এবং";
+      if(op === "||") op = "অথবা";
+      return `${getTextBN(node.left)} ${op} ${getTextBN(node.right)}`;
+
+    case "UnaryExpression":
+      if(node.operator === "!"){
+        return `!(${getTextBN(node.argument)})`;
+      }
+      return `${node.operator}${getTextBN(node.argument)}`;
+
+    case "AssignmentExpression":
+      return `${getTextBN(node.left)} = ${getTextBN(node.right)}`;
+
+    case "ArrayExpression":
+      return `[${node.elements.map(getTextBN).join(", ")}]`;
+
+    case "UpdateExpression":
+      return node.prefix
+        ? `${node.operator}${getTextBN(node.argument)}`
+        : `${getTextBN(node.argument)}${node.operator}`;
+
+    case "MemberExpression":
+      if(node.computed)
+        return `${getTextBN(node.object)}[${getTextBN(node.property)}]`;
+      return `${getTextBN(node.object)}.${getTextBN(node.property)}`;
+
+    case "CallExpression":
+      return `${getTextBN(node.callee)}(${node.arguments.map(getTextBN).join(", ")})`;
+
+    default:
+      return "";
+  }
 }
+
 
 // ================== RUN ==================
 function runCode(){
