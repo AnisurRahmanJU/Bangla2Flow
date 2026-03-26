@@ -352,7 +352,15 @@ function getTextBN(node){
 
   switch(node.type){
     case "Identifier": return node.name;
-    case "Literal": return enNumberToBn(node.value);
+   /* case "Literal": return enNumberToBn(node.value);*/
+  case "Literal":
+  if (typeof node.value === "string") {
+    return `"${node.value}"`;
+  }
+  if (typeof node.value === "boolean") {
+    return node.value ? "সত্য" : "মিথ্যা";
+  }
+  return enNumberToBn(node.value);
     case "BinaryExpression": return `${getTextBN(node.left)} ${node.operator} ${getTextBN(node.right)}`;
     case "AssignmentExpression": return `${getTextBN(node.left)} = ${getTextBN(node.right)}`;
     case "ArrayExpression": return `[${node.elements.map(getTextBN).join(", ")}]`;
