@@ -117,7 +117,7 @@ function generateFlowchart() {
 // ================== DOWNLOAD FLOWCHART ==================
 function downloadImage() {
   const svg = document.querySelector("#output svg");
-  if (!svg) { alert("দয়া করে প্রথমে ফ্লোচার্ট তৈরি করুন!"); return; }
+  if (!svg) { alert("দয়া করে প্রথমে ফ্লোচার্ট তৈরি করুন, তারপর ডাউনলোড করুন!"); return; }
 
   const svgData = new XMLSerializer().serializeToString(svg);
   const canvas = document.createElement("canvas");
