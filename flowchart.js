@@ -279,7 +279,8 @@ function buildFlow(ast) {
 
       case "FunctionDeclaration": {
         const funcId = newId("func");
-        nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}`);
+        const params = node.params.map(p => getTextBN(p)).join(", ");
+        nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
         edges.push(`${prev}->${funcId}`);
         return walk(node.body, funcId);
       }
