@@ -1,6 +1,5 @@
 /**
  * Developer: Md. Anisur Rahman
- * Project: JS Visualizer Pro (Bangla Enabled - Full + Colored + Download)
  */
 
 let editor;
