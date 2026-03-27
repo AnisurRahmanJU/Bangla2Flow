@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,29 +55,46 @@
 </main>
 
 <script src="flowchart.js"></script>
+
 <script>
-function runCode() {
+  function runCode() {
   const consoleEl = document.getElementById("console");
   consoleEl.innerText = "";
 
-  // মূল কোডকে JS এ রূপান্তর
   const code = banglaToJS(editor.getValue());
-
-  // Console log override
   const originalLog = console.log;
 
+  function convertToBangla(value) {
+    if (typeof value === "number") {
+      return enNumberToBn(value);
+    }
+
+    if (typeof value === "boolean") {
+      return value ? "সত্য" : "মিথ্যা";
+    }
+
+    if (Array.isArray(value)) {
+      return "[" + value.map(v => convertToBangla(v)).join(", ") + "]";
+    }
+
+    if (typeof value === "object" && value !== null) {
+      let objStr = "{ ";
+      objStr += Object.entries(value)
+        .map(([k, v]) => `${k}: ${convertToBangla(v)}`)
+        .join(", ");
+      objStr += " }";
+      return objStr;
+    }
+
+    if (typeof value === "string") {
+      return enNumberToBn(value);
+    }
+
+    return value;
+  }
+
   console.log = (...args) => {
-    const bnArgs = args.map(arg => {
-      if (typeof arg === "number") {
-        // সংখ্যা বাংলায় রূপান্তর
-        return enNumberToBn(arg);
-      } else if (typeof arg === "boolean") {
-        // true/false -> সত্য/মিথ্যা
-        return arg ? "সত্য" : "মিথ্যা";
-      } else {
-        return arg;
-      }
-    });
+    const bnArgs = args.map(arg => convertToBangla(arg));
     consoleEl.innerText += bnArgs.join(" ") + "\n";
   };
 
@@ -88,11 +104,10 @@ function runCode() {
     consoleEl.innerText += "Error: " + err.message;
   }
 
-  // পুরোনো console.log ফিরিয়ে দাও
   console.log = originalLog;
 }
 
-// Helper function: English number -> Bangla number
+// English → Bangla number
 function enNumberToBn(text) {
   const map = { "0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯" };
   return text.toString().replace(/[0-9]/g, d => map[d]);
