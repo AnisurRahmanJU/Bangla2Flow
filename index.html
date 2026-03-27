@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>বাংলা থেকে ফ্লোচার্ট</title>
 
-  <link href="https://fonts.googleapis.com/css?family=Hing+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-  
   <link rel="stylesheet" href="styles.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -25,33 +24,36 @@
 </header>
 
 <main class="container">
-  <div class="editor-section">
-    <span class="section-title">বাংলা কোড ইডিটর:</span>
-    <div id="editor"></div>
+  <!-- 2-Column Layout -->
+  <div class="two-columns">
+    <!-- First Column: Editor + Generate Button -->
+    <div class="col">
+      <span class="section-title">বাংলা কোড ইডিটর:</span>
+      <div id="editor"></div>
+      <button class="small-btn" onclick="generateFlowchart()">ফ্লোচার্ট তৈরি করুন</button>
+    </div>
+
+    <!-- Second Column: Flowchart Output + Download Button -->
+    <div class="col">
+      <span class="section-title">ফ্লোচার্ট আউটপুট:</span>
+      <div id="output"></div>
+      <button class="small-btn" onclick="downloadImage()">ডাউনলোড ফ্লোচার্ট</button>
+    </div>
   </div>
 
-    <button onclick="generateFlowchart()">ফ্লোচার্ট তৈরি করুন</button>
-    <br><br>
+  <!-- Buttons below columns -->
+  <div class="below-buttons">
+    <button class="small-btn" onclick="runCode()">কোড রান করুন</button>
+    <a href="https://github.com/AnisurRahmanJU/Bangla2Flow/blob/main/README.md" target="_blank">
+      <button class="small-btn">উদাহরণ দেখুন</button>
+    </a>
+  </div>
 
-  <div class="flowchart-section">
-    <span class="section-title">ফ্লোচার্ট আউটপুট:</span>
-    <div id="output"></div>
-  </div><br>
-
-  <!-- ✅ SAME LINE BUTTON -->
-  <button onclick="runCode()">কোড রান করুন</button>
-  <button onclick="downloadImage()">ডাউনলোড ফ্লোচার্ট</button>
-
-  <br><br>
-
+  <!-- Console -->
   <div class="console-section">
     <span class="section-title">কনসোল আউটপুট:</span>
     <pre id="console"></pre>
   </div>
-
-  <a href="https://github.com/AnisurRahmanJU/Bangla2Flow/blob/main/README.md " target="_blank">
-    <button type="btn btn-info">উদাহরণ দেখুন</button>
-  </a>
 </main>
 
 <script src="flowchart.js"></script>
@@ -60,102 +62,53 @@ function runCode() {
   const consoleEl = document.getElementById("console");
   consoleEl.innerText = "";
 
-  // মূল কোডকে JS এ রূপান্তর
   const code = banglaToJS(editor.getValue());
 
-  // Console log override
   const originalLog = console.log;
-
   console.log = (...args) => {
     const bnArgs = args.map(arg => {
-      if (typeof arg === "number") {
-        // সংখ্যা বাংলায় রূপান্তর
-        return enNumberToBn(arg);
-      } else if (typeof arg === "boolean") {
-        // true/false -> সত্য/মিথ্যা
-        return arg ? "সত্য" : "মিথ্যা";
-      } else {
-        return arg;
-      }
+      if (typeof arg === "number") return enNumberToBn(arg);
+      else if (typeof arg === "boolean") return arg ? "সত্য" : "মিথ্যা";
+      else return arg;
     });
     consoleEl.innerText += bnArgs.join(" ") + "\n";
   };
 
-  try {
-    eval(code);
-  } catch (err) {
-    consoleEl.innerText += "Error: " + err.message;
-  }
+  try { eval(code); }
+  catch (err) { consoleEl.innerText += "Error: " + err.message; }
 
-  // পুরোনো console.log ফিরিয়ে দাও
   console.log = originalLog;
 }
 
-// Helper function: English number -> Bangla number
 function enNumberToBn(text) {
   const map = { "0":"০","1":"১","2":"২","3":"৩","4":"৪","5":"৫","6":"৬","7":"৭","8":"৮","9":"৯" };
   return text.toString().replace(/[0-9]/g, d => map[d]);
 }
-</script>
-  
-<script>
-// ================== SYNTAX HIGHLIGHT ==================
+
+// Syntax Highlighting
 const customOverlay = {
   token: function(stream) {
-
-    // Comment
     if (stream.match(/^\/\/.*/)) return "comment-custom";
-
-    // String
-    if (stream.match(/^"(?:[^"\\]|\\.)*"/) || stream.match(/^'(?:[^'\\]|\\.)*'/)) {
-      return "string-custom";
-    }
-
-    // Bangla Keywords (purple)
-    if (stream.match(/^(যদি|নাহলে যদি|নাহলে|চলক|ধরি|ধ্রুবক|সত্য|মিথ্যা|এবং|অথবা|সুইচ|কেস|ডিফল্ট|নাল|বাদ|যতক্ষণ|করো|থামো|ফেরত|ফাংশন|লুপ)(?![\u0980-\u09FF\w])/)) {
-      return "keyword-custom";
-    }
-
-    // Function call (blue)
-    if (stream.match(/^([\u0980-\u09FF\w_]+)\s*\(/)) {
-      return "func-call";
-    }
-
-    // Object after dot (orange)
-    if (stream.match(/^\.\s*([\u0980-\u09FF\w_]+)/)) {
-      return "object-access";
-    }
-
-    // Bangla number (limegreen)
-    if (stream.match(/^[০-৯]+(\.[০-৯]+)?/)) {
-      return "bangla-number";
-    }
-
-    //  Variable (gray)
-    if (stream.match(/^[a-zA-Z_\u0980-\u09FF][a-zA-Z0-9_\u0980-\u09FF\u09E6-\u09EF]*/)) {
-      return "variable-custom";
-    }
-
+    if (stream.match(/^"(?:[^"\\]|\\.)*"/) || stream.match(/^'(?:[^'\\]|\\.)*'/)) return "string-custom";
+    if (stream.match(/^(যদি|নাহলে যদি|নাহলে|চলক|ধরি|ধ্রুবক|সত্য|মিথ্যা|এবং|অথবা|সুইচ|কেস|ডিফল্ট|নাল|বাদ|যতক্ষণ|করো|থামো|ফেরত|ফাংশন|লুপ)(?![\u0980-\u09FF\w])/)) return "keyword-custom";
+    if (stream.match(/^([\u0980-\u09FF\w_]+)\s*\(/)) return "func-call";
+    if (stream.match(/^\.\s*([\u0980-\u09FF\w_]+)/)) return "object-access";
+    if (stream.match(/^[০-৯]+(\.[০-৯]+)?/)) return "bangla-number";
+    if (stream.match(/^[a-zA-Z_\u0980-\u09FF][a-zA-Z0-9_\u0980-\u09FF\u09E6-\u09EF]*/)) return "variable-custom";
     stream.next();
     return null;
   }
 };
 
-// ================== APPLY OVERLAY AFTER EDITOR LOAD ==================
 function applyCustomHighlight() {
-  if (editor) {
-    editor.addOverlay(customOverlay);
-  } else {
-    console.error("Editor not initialized!");
-  }
+  if (editor) editor.addOverlay(customOverlay);
+  else console.error("Editor not initialized!");
 }
 
-// ================== FIX: WAIT UNTIL EDITOR READY ==================
 window.addEventListener("load", function () {
-  setTimeout(() => {
-    applyCustomHighlight();
-  }, 200); // ছোট delay যাতে editor ready হয়
+  setTimeout(() => { applyCustomHighlight(); }, 200);
 });
 </script>
+
 </body>
 </html>
