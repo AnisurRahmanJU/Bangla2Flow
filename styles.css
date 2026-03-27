@@ -1,7 +1,7 @@
 /* General Body Styling */
 body {
   margin: 0;
-  font-family: 'Hind Siliguri', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: #f8f9fa;
   color: #333;
 }
@@ -19,60 +19,55 @@ header {
   padding: 0 15px;
 }
 
-/* 2-Column Layout */
-.two-columns {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
+/* Editor Section */
+#editor {
+  height: 280px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 15px;
+}
+
+/* Button Grid */
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
-.two-columns .col {
-  display: table-cell;
-  vertical-align: top;
-  padding: 0 10px;
-}
-
-/* Editor & Flowchart Same Height */
-#editor, #output {
-  height: 300px;  /* same height for both */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  overflow-x: auto; /* horizontal scroll */
-  overflow-y: auto; /* vertical scroll */
-  margin-bottom: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-/* Small Buttons */
-button.small-btn {
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 5px;
+button {
+  padding: 12px;
+  font-weight: 600;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
   background: #007bff;
   color: white;
-  margin-top: 5px;
-  transition: 0.2s;
+  transition: 0.3s;
 }
 
-button.small-btn:active { transform: scale(0.95); }
+button:active { transform: scale(0.95); }
 
-/* Flowchart Output Additional Styling */
+/* --- FLOWCHART VIEWPORT --- */
 #output {
+  width: 100%;
+  height: 500px;
+  overflow: auto; /* মোবাইলে হাত দিয়ে সরানোর জন্য */
+  border: 2px solid #eee;
+  background: #ffffff;
+  border-radius: 8px;
   display: flex;
-  justify-content: center;
+  justify-content: center; /* ডেস্কটপে মাঝখানে */
   align-items: flex-start;
+  padding: 15px;
+  box-sizing: border-box;
 }
 
-/* Flowchart SVG full scroll */
 #output svg {
   display: block;
-  margin: 0;
+  margin: 0 auto;
 }
 
 /* Console Styling */
@@ -84,31 +79,30 @@ button.small-btn:active { transform: scale(0.95); }
   margin-top: 15px;
   font-family: 'Fira Code', monospace;
   font-size: 13px;
-  min-height: 100px;
-  max-height: 300px;
-  white-space: pre;
-  overflow-x: auto; /* horizontal scroll */
-  overflow-y: auto; /* vertical scroll */
+  min-height: 60px;
+  white-space: pre-wrap;
 }
-
-/* Buttons Below Columns */
-.below-buttons {
-  margin-bottom: 15px;
-}
-
-/* Syntax Highlighting */
-.cm-variable-custom { color: gray; font-weight: 500; }
-.cm-keyword-custom { color: purple; font-weight: 500; }
-.cm-func-call { color: blue; font-weight: 500; }
-.cm-object-access { color: orange; font-weight: 500; }
-.cm-bangla-number { color: limegreen; font-weight: 500; }
 
 /* --- MOBILE SPECIFIC FIXES --- */
 @media (max-width: 600px) {
-  .two-columns { display: block; }
-  .two-columns .col { display: block; width: 100%; padding: 0; margin-bottom: 20px; }
+  .buttons { grid-template-columns: 1fr; }
+  
+  #output { 
+    display: block; /* মোবাইলে ব্লক দিলে স্ক্রলিং ভালো হয় */
+    height: 450px;
+  }
 
-  #editor, #output { height: 400px; }
-  #console { max-height: 200px; }
-  #output svg { max-width: none !important; margin: 0; }
+  #output svg {
+    /* মোবাইলে জোর করে বিশাল বড় করবে না */
+    max-width: none !important; 
+    margin: 0; /* বাম দিক থেকে শুরু হবে */
+  }
 }
+
+/* ================= SYNTAX HIGHLIGHT ================= */
+.cm-variable-custom { color: gray; font-weight: 500; }
+.cm-keyword-custom { color: purple; font-weight: 600; }
+.cm-func-call { color: blue; font-weight: 500; }
+.cm-object-access { color: orange; font-weight: 500; }
+.cm-bangla-number { color: limegreen; font-weight: 600; }
+
