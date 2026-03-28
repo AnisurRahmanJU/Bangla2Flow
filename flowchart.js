@@ -290,13 +290,15 @@ function buildFlow(ast) {
     nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
     edges.push(`${prev}->${funcId}`);
 
-    // Walk the function body **but do not connect its last node to main flow**
+    // Walk the function body to generate nodes (like "ফেরত"),
+    // but do NOT connect the last statement to the main flow.
     const prevLoopUpdate = currentLoopUpdate;
-    currentLoopUpdate = null; // reset for function body
-    walk(node.body, funcId); 
+    currentLoopUpdate = null;  // reset inside function
+    walk(node.body, funcId);    // build nodes for function body
     currentLoopUpdate = prevLoopUpdate;
 
-    // Return the function node itself as the end for main flow
+    // Return the function node itself as the last node in main flow
+    // so top-level statements continue after the function
     return funcId;
 }
         
