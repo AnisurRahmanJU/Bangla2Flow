@@ -44,7 +44,7 @@ function banglaToJS(code){
     .replace(/চলক/g,"var")
     .replace(/ধ্রুবক/g,"const")
     .replace(/দেখাও/g,"console.log")
-    .replace(/নাও/g,"prompt")
+    .replace(/\bনাও\b/g,"prompt")
     .replace(/যদি/g,"if")
     .replace(/নাহলে/g,"else")
     .replace(/যতক্ষণ/g,"while")
@@ -74,7 +74,7 @@ function banglaToJS(code){
     .replace(/বড়হাতেরঅক্ষর/g,"toUpperCase")
     .replace(/ছোটহাতেরঅক্ষর/g,"toLowerCase")
     .replace (/উপস্ট্রিং/g, "substr")
-    .replace(/নং/g,"Number");
+    .replace(/\bনং\b/g,"Number");
   
 }
 
