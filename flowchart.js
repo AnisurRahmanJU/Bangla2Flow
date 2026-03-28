@@ -357,47 +357,18 @@ function buildFlow(ast) {
   const eId = newId("out");
   let txt = getTextBN(node.expression);
 
-  let type = "operation"; // default rectangle
+  // ✅ ALWAYS parallelogram
+  const type = "inputoutput";
 
-  // 🔍 detect prompt (nested সহ)
-  function hasPromptCall(expr) {
-    if (!expr) return false;
+  // ✅ Special case FIRST (very important)
+  txt = txt.replace(
+    /Number\s*\(\s*prompt\s*\((.*?)\)\s*\)/g,
+    "নং(নাও($1))"
+  );
 
-    if (expr.type === "CallExpression") {
-      if (expr.callee.name === "prompt") return true;
-      return expr.arguments.some(arg => hasPromptCall(arg));
-    }
-
-    return false;
-  }
-
-  // 🔍 detect console.log
-  function isConsoleLog(expr) {
-    return (
-      expr.type === "CallExpression" &&
-      expr.callee.type === "MemberExpression" &&
-      expr.callee.object.name === "console" &&
-      expr.callee.property.name === "log"
-    );
-  }
-
-  // ✅ shape decide
-  if (hasPromptCall(node.expression) || isConsoleLog(node.expression)) {
-    type = "input";
-  }
-
-  // 🔤 তোমার আগের replace গুলো 그대로 থাকবে
-  txt = txt.replace("console.log","দেখাও");
-  txt = txt.replace(".push",".রাখো");
-  txt = txt.replace(".pop",".সরাও");
-  txt = txt.replace(".length",".দৈর্ঘ্য");
-  txt = txt.replace(".slice",".অংশ");
-  txt = txt.replace(".toUpperCase",".বড়হাতেরঅক্ষর");
-  txt = txt.replace(".toLowerCase",".ছোটহাতেরঅক্ষর");
-  txt = txt.replace(".substr",".উপস্ট্রিং");
-  txt = txt.replace("true","সত্য");
-  txt = txt.replace("false","মিথ্যা");
-  txt = txt.replace("prompt","নাও");
+  // ✅ Then normal replace
+  txt = txt.replace(/console\.log/g, "দেখাও");
+  txt = txt.replace(/prompt/g, "নাও");
 
   nodes.push(`${eId}=>${type}: ${txt}`);
   edges.push(`${prev}->${eId}`);
