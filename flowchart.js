@@ -338,34 +338,8 @@ function buildFlow(ast) {
         const eId = newId("out");
         let txt = getTextBN(node.expression);
         txt = txt.replace("console.log","দেখাও");
-        /*txt = txt.replace(".push",".রাখো");
-        txt = txt.replace(".pop",".সরাও");
-        txt = txt.replace(".length",".দৈর্ঘ্য");
-        txt = txt.replace(".slice",".অংশ");
-        txt = txt.replace(".toUpperCase",".বড়হাতেরঅক্ষর");
-        txt = txt.replace(".toLowerCase",".ছোটহাতেরঅক্ষর");
-        txt = txt.replace(".substr",".উপস্ট্রিং");
-        txt = txt.replace("true","সত্য");
-        txt = txt.replace("false","মিথ্যা");*/
         txt = txt.replace("prompt","নাও");
         nodes.push(`${eId}=>inputoutput: ${txt}`);
-        edges.push(`${prev}->${eId}`);
-        return eId;
-      } 
-
-        case "OperationStatement": {
-        const eId = newId("out");
-        let txt = getTextBN(node.expression);
-        txt = txt.replace(".push",".রাখো");
-        txt = txt.replace(".pop",".সরাও");
-        txt = txt.replace(".length",".দৈর্ঘ্য");
-        txt = txt.replace(".slice",".অংশ");
-        txt = txt.replace(".toUpperCase",".বড়হাতেরঅক্ষর");
-        txt = txt.replace(".toLowerCase",".ছোটহাতেরঅক্ষর");
-        txt = txt.replace(".substr",".উপস্ট্রিং");
-        txt = txt.replace("true","সত্য");
-        txt = txt.replace("false","মিথ্যা");
-        nodes.push(`${eId}=>operation: ${txt}`);
         edges.push(`${prev}->${eId}`);
         return eId;
       }     
