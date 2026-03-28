@@ -335,7 +335,7 @@ function buildFlow(ast) {
       }
 
         
-/*case "ExpressionStatement": {
+    case "ExpressionStatement": {
     const expr = node.expression;
 
     // Function to replace JS methods with Bangla
@@ -404,67 +404,7 @@ function buildFlow(ast) {
     nodes.push(`${eId}=>operation: ${txt}`);
     edges.push(`${prev}->${eId}`);
     return eId;
-} */
-        
-case "ExpressionStatement": {
-    const expr = node.expression;
-
-    const replaceBanglaMethods = (txt) => txt
-        .replace(".push",".রাখো")
-        .replace(".pop",".সরাও")
-        .replace(".slice",".অংশ")
-        .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
-        .replace(".toLowerCase",".ছোটহাতেরঅক্ষর")
-        .replace(".substr",".উপস্ট্রিং")
-        .replace(".length",".দৈর্ঘ্য");
-
-    // Recursive function to convert JS call expressions to Bangla
-    function getBanglaCall(node) {
-        if(!node) return "";
-        if(node.type === "CallExpression") {
-            let calleeName = "";
-            if(node.callee.type === "Identifier") {
-                calleeName = node.callee.name === "prompt" ? "নাও"
-                            : node.callee.name === "Number" ? "নং"
-                            : node.callee.name;
-            } else if(node.callee.type === "MemberExpression") {
-                calleeName = getTextBN(node.callee);
-            }
-            const args = node.arguments.map(a => getBanglaCall(a)).join(", ");
-            return `${calleeName}(${args})`;
-        } else if(node.type === "MemberExpression" || node.type === "Identifier" || node.type === "Literal") {
-            return getTextBN(node);
-        } else {
-            return getTextBN(node);
-        }
-    }
-
-    // console.log → দেখাও
-    if(expr.type === "CallExpression" && expr.callee.type === "MemberExpression" &&
-       expr.callee.object.name === "console" && expr.callee.property.name === "log") {
-
-        const arg = expr.arguments[0];
-        const opId = newId("op");
-        let innerTxt = getBanglaCall(arg);
-        innerTxt = replaceBanglaMethods(innerTxt);
-        nodes.push(`${opId}=>operation: ${innerTxt}`);
-        edges.push(`${prev}->${opId}`);
-
-        const ioId = newId("out");
-        nodes.push(`${ioId}=>inputoutput: দেখাও(${innerTxt})`);
-        edges.push(`${opId}->${ioId}`);
-        return ioId;
-    }
-
-    // Other expressions → rectangle
-    const opId = newId("op");
-    let txt = getBanglaCall(expr);
-    txt = replaceBanglaMethods(txt);
-    nodes.push(`${opId}=>operation: ${txt}`);
-    edges.push(`${prev}->${opId}`);
-    return opId;
-}
-        
+}             
      default:
         return prev;
     }
