@@ -335,7 +335,7 @@ function buildFlow(ast) {
       }
 
         
-case "ExpressionStatement": {
+/*case "ExpressionStatement": {
     const expr = node.expression;
 
     // Function to replace JS methods with Bangla
@@ -400,6 +400,110 @@ case "ExpressionStatement": {
     // Fallback → rectangle
     const eId = newId("out");
     let txt = getTextBN(expr);
+    txt = replaceBanglaMethods(txt);
+    nodes.push(`${eId}=>operation: ${txt}`);
+    edges.push(`${prev}->${eId}`);
+    return eId;
+}*/
+
+    case "ExpressionStatement": {
+    const expr = node.expression;
+
+    // Function to replace JS methods with Bangla
+    const replaceBanglaMethods = (txt) => txt
+        .replace(".push",".রাখো")
+        .replace(".pop",".সরাও")
+        .replace(".slice",".অংশ")
+        .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
+        .replace(".toLowerCase",".ছোটহাতেরঅক্ষর")
+        .replace(".substr",".উপস্ট্রিং");
+
+    // Recursive function to convert JS expressions to Bangla for flowchart
+    const exprToBangla = (node) => {
+        if(!node) return "";
+
+        switch(node.type) {
+            case "CallExpression": {
+                // Handle console.log
+                if(node.callee.type === "MemberExpression" &&
+                   node.callee.object.name === "console" &&
+                   node.callee.property.name === "log") {
+                    const args = node.arguments.map(exprToBangla).join(", ");
+                    return `দেখাও(${args})`;
+                }
+
+                // Handle prompt
+                if(node.callee.name === "prompt") {
+                    const args = node.arguments.map(exprToBangla).join(", ");
+                    return `নাও(${args})`;
+                }
+
+                // Handle Number()
+                if(node.callee.name === "Number") {
+                    const args = node.arguments.map(exprToBangla).join(", ");
+                    return `নং(${args})`;
+                }
+
+                // Fallback: other function calls
+                const calleeTxt = exprToBangla(node.callee);
+                const argsTxt = node.arguments.map(exprToBangla).join(", ");
+                return `${calleeTxt}(${argsTxt})`;
+            }
+
+            case "MemberExpression": {
+                const obj = exprToBangla(node.object);
+                const prop = node.computed ? `[${exprToBangla(node.property)}]` : `.${exprToBangla(node.property)}`;
+                return obj + prop;
+            }
+
+            case "Identifier":
+                return node.name;
+
+            case "Literal":
+                if(typeof node.value === "string") return `"${node.value}"`;
+                if(typeof node.value === "boolean") return node.value ? "সত্য" : "মিথ্যা";
+                return enNumberToBn(node.value);
+
+            case "BinaryExpression":
+            case "LogicalExpression":
+                let op = node.operator;
+                if(op === "&&") op = "এবং";
+                if(op === "||") op = "অথবা";
+                return `${exprToBangla(node.left)} ${op} ${exprToBangla(node.right)}`;
+
+            case "AssignmentExpression":
+                return `${exprToBangla(node.left)} = ${exprToBangla(node.right)}`;
+
+            case "UpdateExpression":
+                return node.prefix
+                    ? `${node.operator}${exprToBangla(node.argument)}`
+                    : `${exprToBangla(node.argument)}${node.operator}`;
+
+            case "ArrayExpression":
+                return `[${node.elements.map(exprToBangla).join(", ")}]`;
+
+            case "UnaryExpression":
+                return node.operator + exprToBangla(node.argument);
+
+            default:
+                return getTextBN(node);
+        }
+    };
+
+    // If it's a call expression or other expression
+    if(expr.type === "CallExpression" || expr.type === "MemberExpression" ||
+       expr.type === "AssignmentExpression" || expr.type === "UpdateExpression") {
+        const opId = newId("op");
+        let txt = exprToBangla(expr);
+        txt = replaceBanglaMethods(txt);
+        nodes.push(`${opId}=>operation: ${txt}`);
+        edges.push(`${prev}->${opId}`);
+        return opId;
+    }
+
+    // Fallback → rectangle
+    const eId = newId("out");
+    let txt = exprToBangla(expr);
     txt = replaceBanglaMethods(txt);
     nodes.push(`${eId}=>operation: ${txt}`);
     edges.push(`${prev}->${eId}`);
