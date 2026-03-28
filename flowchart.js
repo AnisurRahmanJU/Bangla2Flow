@@ -287,14 +287,51 @@ function buildFlow(ast) {
     case "FunctionDeclaration": {
     const funcId = newId("func");
     const params = node.params.map(p => getTextBN(p)).join(", ");
-    
-    nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
+
+    // 🔍 collect all return statements
+    let returnTexts = [];
+
+    function findReturns(body){
+        if(!body) return;
+
+        if(body.type === "ReturnStatement"){
+            returnTexts.push(getTextBN(body.argument));
+        }
+
+        // traverse ভিতরের nodes
+        for(let key in body){
+            const val = body[key];
+
+            if(Array.isArray(val)){
+                val.forEach(v => {
+                    if(v && typeof v === "object"){
+                        findReturns(v);
+                    }
+                });
+            }
+            else if(val && typeof val === "object"){
+                findReturns(val);
+            }
+        }
+    }
+
+    findReturns(node.body);
+
+    // 🧠 build return text
+    let returnText = "";
+    if(returnTexts.length === 1){
+        returnText = ` → ফেরত ${returnTexts[0]}`;
+    }
+    else if(returnTexts.length > 1){
+        returnText = ` → ফেরত (${returnTexts.join(" | ")})`;
+    }
+
+    // 📦 final node
+    nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})${returnText}`);
     edges.push(`${prev}->${funcId}`);
 
-    // ❌ function body walk করবো না (main flow clean রাখতে)
     return funcId;
 }
-
         
 
       case "ReturnStatement": {
