@@ -481,7 +481,7 @@ function getTextBN(node){
 
 
 
-// ================== RUN ==================
+/*// ================== RUN ==================
 function runCode(){
   const consoleEl = document.getElementById("console");
   consoleEl.innerText = "";
@@ -489,6 +489,25 @@ function runCode(){
   const originalLog = console.log;
   console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
   try{ eval(code); } catch(err){ consoleEl.innerText+="Error: "+err.message; }
+  console.log = originalLog;
+} */
+
+function runCode(){
+  const consoleEl = document.getElementById("console");
+  consoleEl.innerText = "";
+
+  // Translate Bangla → JS first
+  const code = banglaToJS(editor.getValue());
+
+  const originalLog = console.log;
+  console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
+
+  try { 
+    eval(code);  // Run JS, not raw Bangla
+  } catch(err){ 
+    consoleEl.innerText += "Error: " + err.message; 
+  }
+
   console.log = originalLog;
 }
 
