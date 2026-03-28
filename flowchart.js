@@ -345,39 +345,34 @@ function buildFlow(ast) {
       }  */
         
 case "ExpressionStatement": {
-    // Check if it's a 'দেখাও' or 'নাও' call with another function inside
-    if(node.expression.type === "CallExpression" &&
-       (node.expression.callee.name === "console.log" || node.expression.callee.name === "prompt") &&
-       node.expression.arguments.length === 1 &&
-       node.expression.arguments[0].type === "CallExpression") {
-        
-        // First, make the inner call an operation node
-        const innerOpId = newId("op");
-        const innerText = getTextBN(node.expression.arguments[0]);
-        nodes.push(`${innerOpId}=>operation: ${innerText}`);
-        edges.push(`${prev}->${innerOpId}`);
+    const expr = node.expression;
 
-        // Then, make the 'দেখাও' / 'নাও' node a parallelogram
+    // If it's a console.log / prompt, keep parallelogram
+    if(expr.type === "CallExpression" && (expr.callee.name === "console.log" || expr.callee.name === "prompt")) {
         const ioId = newId("out");
-        const ioText = node.expression.callee.name === "console.log" 
-                        ? `দেখাও(${innerText})` 
-                        : `নাও(${innerText})`;
-        nodes.push(`${ioId}=>inputoutput: ${ioText}`);
-        edges.push(`${innerOpId}->${ioId}`);
+        const txt = getTextBN(expr).replace("console.log","দেখাও").replace("prompt","নাও");
+        nodes.push(`${ioId}=>inputoutput: ${txt}`);
+        edges.push(`${prev}->${ioId}`);
         return ioId;
     }
 
-    // Default behavior for other expressions
+    // If it's any other function call or expression, make it an operation (rectangle)
+    if(expr.type === "CallExpression" || expr.type === "AssignmentExpression" || expr.type === "UpdateExpression" || expr.type === "MemberExpression") {
+        const opId = newId("op");
+        const txt = getTextBN(expr);
+        nodes.push(`${opId}=>operation: ${txt}`);
+        edges.push(`${prev}->${opId}`);
+        return opId;
+    }
+
+    // Fallback for other expressions (like literals, identifiers)
     const eId = newId("out");
-    let txt = getTextBN(node.expression);
-    txt = txt.replace("console.log","দেখাও");
-    txt = txt.replace("prompt","নাও");
-    nodes.push(`${eId}=>inputoutput: ${txt}`);
+    const txt = getTextBN(expr);
+    nodes.push(`${eId}=>operation: ${txt}`);
     edges.push(`${prev}->${eId}`);
     return eId;
 }
         
-   
       default:
         return prev;
     }
