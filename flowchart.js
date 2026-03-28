@@ -276,38 +276,14 @@ function buildFlow(ast) {
         return afterSwitch;
       }
 
-      /*case "FunctionDeclaration": {
+      case "FunctionDeclaration": {
         const funcId = newId("func");
         const params = node.params.map(p => getTextBN(p)).join(", ");
         nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
         edges.push(`${prev}->${funcId}`);
         return walk(node.body, funcId);
-      }  */
+      } 
 
-    case "FunctionDeclaration": {
-    // Create function node
-    const funcId = newId("func");
-    const params = node.params.map(p => getTextBN(p)).join(", ");
-    nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
-    edges.push(`${prev}->${funcId}`);
-
-    // Save current loop update
-    const prevLoopUpdate = currentLoopUpdate;
-    currentLoopUpdate = null;
-
-    // Walk each statement in function body **but attach to the function node only**
-    node.body.body.forEach(stmt => {
-        walk(stmt, funcId);  // pass funcId as prev, so everything stays inside the function
-    });
-
-    // Restore loop update
-    currentLoopUpdate = prevLoopUpdate;
-
-    // Return the function node itself as last node in main flow
-    // so **top-level statements continue after function** if present
-    return funcId;
-}
-        
 
       case "ReturnStatement": {
         const rId = newId("ret");
