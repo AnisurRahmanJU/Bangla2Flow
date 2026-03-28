@@ -335,7 +335,7 @@ function buildFlow(ast) {
       }
 
         
-    case "ExpressionStatement": {
+    /*case "ExpressionStatement": {
     const expr = node.expression;
 
     // Function to replace JS methods with Bangla
@@ -404,7 +404,108 @@ function buildFlow(ast) {
     nodes.push(`${eId}=>operation: ${txt}`);
     edges.push(`${prev}->${eId}`);
     return eId;
+}*/
+   case "ExpressionStatement": {
+    const expr = node.expression;
+
+    // Function to replace JS methods with Bangla
+    const replaceBanglaMethods = (txt) => txt
+        .replace(".push",".রাখো")
+        .replace(".pop",".সরাও")
+        .replace(".slice",".অংশ")
+        .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
+        .replace(".toLowerCase",".ছোটহাতেরঅক্ষর")
+        .replace(".substr",".উপস্ট্রিং")
+        .replace(".length",".দৈর্ঘ্য");
+
+    // ================== CALL EXPRESSION ==================
+    if(expr.type === "CallExpression") {
+        const callee = expr.callee;
+
+        // ===== console.log → দেখাও =====
+        if(
+            callee.type === "MemberExpression" &&
+            callee.object.name === "console" &&
+            callee.property.name === "log"
+        ) {
+            let arg = expr.arguments[0];
+
+            // ✅ Only CallExpression gets separate node
+            if(arg && arg.type === "CallExpression") {
+                const opId = newId("op");
+                let innerTxt = replaceBanglaMethods(getTextBN(arg));
+
+                nodes.push(`${opId}=>operation: ${innerTxt}`);
+                edges.push(`${prev}->${opId}`);
+
+                const ioId = newId("out");
+                nodes.push(`${ioId}=>inputoutput: দেখাও(${innerTxt})`);
+                edges.push(`${opId}->${ioId}`);
+                return ioId;
+            }
+
+            // ❌ MemberExpression → no extra node
+            const ioId = newId("out");
+            let txt = replaceBanglaMethods(
+                getTextBN(expr).replace("console.log","দেখাও")
+            );
+
+            nodes.push(`${ioId}=>inputoutput: ${txt}`);
+            edges.push(`${prev}->${ioId}`);
+            return ioId;
+        }
+
+        // ===== prompt → নাও =====
+        if(callee.name === "prompt") {
+            const ioId = newId("out");
+            let txt = replaceBanglaMethods(
+                getTextBN(expr).replace("prompt","নাও")
+            );
+
+            nodes.push(`${ioId}=>inputoutput: ${txt}`);
+            edges.push(`${prev}->${ioId}`);
+            return ioId;
+        }
+
+        // ===== Other function calls =====
+        const opId = newId("op");
+        let txt = replaceBanglaMethods(getTextBN(expr));
+
+        nodes.push(`${opId}=>operation: ${txt}`);
+        edges.push(`${prev}->${opId}`);
+        return opId;
+    }
+
+    // ================== MEMBER EXPRESSION ==================
+    // ✅ Only show when standalone
+    if(expr.type === "MemberExpression") {
+        const opId = newId("op");
+        let txt = replaceBanglaMethods(getTextBN(expr));
+
+        nodes.push(`${opId}=>operation: ${txt}`);
+        edges.push(`${prev}->${opId}`);
+        return opId;
+    }
+
+    // ================== ASSIGNMENT / UPDATE ==================
+    if(expr.type === "AssignmentExpression" || expr.type === "UpdateExpression") {
+        const opId = newId("op");
+        let txt = replaceBanglaMethods(getTextBN(expr));
+
+        nodes.push(`${opId}=>operation: ${txt}`);
+        edges.push(`${prev}->${opId}`);
+        return opId;
+    }
+
+    // ================== FALLBACK ==================
+    const eId = newId("op");
+    let txt = replaceBanglaMethods(getTextBN(expr));
+
+    nodes.push(`${eId}=>operation: ${txt}`);
+    edges.push(`${prev}->${eId}`);
+    return eId;
 }
+        
      default:
         return prev;
     }
