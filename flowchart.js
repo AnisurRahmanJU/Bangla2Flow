@@ -357,12 +357,13 @@ function buildFlow(ast) {
   const eId = newId("out");
   let txt = getTextBN(node.expression);
 
-  // ✅ detect BEFORE replace
-  const isPrompt =
+  // ✅ detect আগে
+  const isIO =
+    txt.includes("console.log") ||
     txt.includes("prompt(") ||
     txt.includes("Number(prompt(");
 
-  // 🔤 তোমার আগের replace (unchanged)
+  // 🔤 তোমার original replace
   txt = txt.replace("console.log","দেখাও");
   txt = txt.replace(".push",".রাখো");
   txt = txt.replace(".pop",".সরাও");
@@ -374,21 +375,23 @@ function buildFlow(ast) {
   txt = txt.replace("true","সত্য");
   txt = txt.replace("false","মিথ্যা");
 
-  // ✅ special replace (must be BEFORE prompt replace)
+  // ✅ special case আগে
   txt = txt.replace(
     /Number\s*\(\s*prompt\s*\((.*?)\)\s*\)/g,
     "নং(নাও($1))"
   );
 
+  // তারপর prompt
   txt = txt.replace("prompt","নাও");
 
-  // ✅ shape select
-  const type = isPrompt ? "inputoutput" : "operation";
+  // ✅ shape decide
+  const type = isIO ? "inputoutput" : "operation";
 
   nodes.push(`${eId}=>${type}: ${txt}`);
   edges.push(`${prev}->${eId}`);
   return eId;
 }
+        
       default:
         return prev;
     }
