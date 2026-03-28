@@ -409,75 +409,41 @@ function buildFlow(ast) {
 case "ExpressionStatement": {
     const expr = node.expression;
 
-    // Function to replace JS methods with Bangla
+    // মেথডগুলোকে বাংলায় রূপান্তর করার ফাংশন
     const replaceBanglaMethods = (txt) => txt
-        .replace(".push",".রাখো")
-        .replace(".pop",".সরাও")
-        .replace(".slice",".অংশ")
-        .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
-        .replace(".toLowerCase",".ছোটহাতেরঅক্ষর")
-        .replace(".substr",".উপস্ট্রিং")
-        .replace(".length",".দৈর্ঘ্য");
+        .replace(/\bprompt\b/g, "নাও")
+        .replace(/\bNumber\b/g, "নং")
+        .replace(".push", ".রাখো")
+        .replace(".pop", ".সরাও")
+        .replace(".slice", ".অংশ")
+        .replace(".toUpperCase", ".বড়হাতেরঅক্ষর")
+        .replace(".toLowerCase", ".ছোটহাতেরঅক্ষর")
+        .replace(".substr", ".উপস্ট্রিং")
+        .replace(".length", ".দৈর্ঘ্য");
 
-    // Convert expression to Bangla text for flowchart
-    let txt = getTextBN(expr);
-    txt = replaceBanglaMethods(txt);
+    if (expr.type === "CallExpression") {
+        const callee = expr.callee;
 
-    const opId = newId("op");
-
-    // console.log → দেখাও
-    if(expr.type === "CallExpression" &&
-       expr.callee.type === "MemberExpression" &&
-       expr.callee.object.name === "console" &&
-       expr.callee.property.name === "log") {
-        // If argument is a method/member call, show it first
-        const arg = expr.arguments[0];
-        if(arg && (arg.type === "CallExpression" || arg.type === "MemberExpression")) {
-            const innerId = newId("op");
-            let innerTxt = getTextBN(arg);
+        // console.log -> দেখাও
+        if (callee.type === "MemberExpression" && callee.object.name === "console" && callee.property.name === "log") {
+            let innerTxt = getTextBN(expr.arguments[0]);
             innerTxt = replaceBanglaMethods(innerTxt);
-            nodes.push(`${innerId}=>operation: ${innerTxt}`);
-            edges.push(`${prev}->${innerId}`);
-
+            
             const ioId = newId("out");
             nodes.push(`${ioId}=>inputoutput: দেখাও(${innerTxt})`);
-            edges.push(`${innerId}->${ioId}`);
-            return ioId;
-        } else {
-            const ioId = newId("out");
-            nodes.push(`${ioId}=>inputoutput: ${txt.replace("console.log","দেখাও")}`);
             edges.push(`${prev}->${ioId}`);
             return ioId;
         }
     }
 
-    // prompt → নাও
-    if(expr.type === "CallExpression" &&
-       (expr.callee.name === "prompt" ||
-        (expr.callee.name === "Number" &&
-         expr.arguments[0]?.type === "CallExpression" &&
-         expr.arguments[0].callee.name === "prompt"))) {
-        const ioId = newId("out");
-        nodes.push(`${ioId}=>inputoutput: ${txt}`);
-        edges.push(`${prev}->${ioId}`);
-        return ioId;
-    }
-
-    // Other function calls / member expressions → rectangle
-    if(expr.type === "CallExpression" || expr.type === "MemberExpression" ||
-       expr.type === "AssignmentExpression" || expr.type === "UpdateExpression") {
-        nodes.push(`${opId}=>operation: ${txt}`);
-        edges.push(`${prev}->${opId}`);
-        return opId;
-    }
-
-    // Fallback → rectangle
+    // অন্যান্য সব স্টেটমেন্টের জন্য (যেমন: ভেরিয়েবল অ্যাসাইনমেন্ট)
+    const opId = newId("op");
+    let txt = getTextBN(expr);
+    txt = replaceBanglaMethods(txt); // এখানে prompt/Number বাংলায় কনভার্ট হবে
     nodes.push(`${opId}=>operation: ${txt}`);
     edges.push(`${prev}->${opId}`);
     return opId;
-}
-        
-        
+}   
      default:
         return prev;
     }
