@@ -45,6 +45,7 @@ function banglaToJS(code){
     .replace(/ধ্রুবক/g,"const")
     .replace(/দেখাও/g,"console.log")
     .replace(/\bনাও\b/g,"prompt")
+    .replace(/\bনং\b/g,"Number")
     .replace(/যদি/g,"if")
     .replace(/নাহলে/g,"else")
     .replace(/যতক্ষণ/g,"while")
@@ -73,9 +74,8 @@ function banglaToJS(code){
     .replace(/অংশ/g,"slice")
     .replace(/বড়হাতেরঅক্ষর/g,"toUpperCase")
     .replace(/ছোটহাতেরঅক্ষর/g,"toLowerCase")
-    .replace (/উপস্ট্রিং/g, "substr")
-    .replace(/\bনং\b/g,"Number");
-  
+    .replace (/উপস্ট্রিং/g, "substr");
+     
 }
 
 // ================== FLOWCHART ==================
