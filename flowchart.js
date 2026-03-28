@@ -347,25 +347,36 @@ function buildFlow(ast) {
 case "ExpressionStatement": {
     const expr = node.expression;
 
-    // If it's a console.log / prompt, keep parallelogram
+    // If it's a console.log / prompt, use parallelogram
     if(expr.type === "CallExpression" && (expr.callee.name === "console.log" || expr.callee.name === "prompt")) {
         const ioId = newId("out");
-        const txt = getTextBN(expr).replace("console.log","দেখাও").replace("prompt","নাও");
+        let txt = getTextBN(expr);
+        txt = txt.replace("console.log","দেখাও").replace("prompt","নাও");
         nodes.push(`${ioId}=>inputoutput: ${txt}`);
         edges.push(`${prev}->${ioId}`);
         return ioId;
     }
 
-    // If it's any other function call or expression, make it an operation (rectangle)
+    // If it's a method call or assignment, make it an operation (rectangle)
     if(expr.type === "CallExpression" || expr.type === "AssignmentExpression" || expr.type === "UpdateExpression" || expr.type === "MemberExpression") {
         const opId = newId("op");
-        const txt = getTextBN(expr);
+        let txt = getTextBN(expr);
+
+        // Replace common JS methods with Bangla equivalents
+        txt = txt.replace(".push","রাখো")
+                 .replace(".pop","সরাও")
+                 .replace(".slice","অংশ")
+                 .replace(".toUpperCase","বড়হাতেরঅক্ষর")
+                 .replace(".toLowerCase","ছোটহাতেরঅক্ষর")
+                 .replace(".substr","উপস্ট্রিং")
+                 .replace("Number","নং");
+
         nodes.push(`${opId}=>operation: ${txt}`);
         edges.push(`${prev}->${opId}`);
         return opId;
     }
 
-    // Fallback for other expressions (like literals, identifiers)
+    // Fallback for literals, identifiers, or anything else → rectangle
     const eId = newId("out");
     const txt = getTextBN(expr);
     nodes.push(`${eId}=>operation: ${txt}`);
