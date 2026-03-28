@@ -291,19 +291,20 @@ function buildFlow(ast) {
     nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
     edges.push(`${prev}->${funcId}`);
 
-    // Process function body **inside function** using same logic as ExpressionStatement
+    // Save current loop update
     const prevLoopUpdate = currentLoopUpdate;
     currentLoopUpdate = null;
 
-    // Walk each statement in function body
+    // Walk each statement in function body **but attach to the function node only**
     node.body.body.forEach(stmt => {
-        // Use the same ExpressionStatement logic
-        walk(stmt, funcId);
+        walk(stmt, funcId);  // pass funcId as prev, so everything stays inside the function
     });
 
+    // Restore loop update
     currentLoopUpdate = prevLoopUpdate;
 
-    // Return function node itself for main flow
+    // Return the function node itself as last node in main flow
+    // so **top-level statements continue after function** if present
     return funcId;
 }
         
