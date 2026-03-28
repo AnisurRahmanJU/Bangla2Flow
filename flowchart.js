@@ -285,20 +285,23 @@ function buildFlow(ast) {
       }  */
 
     case "FunctionDeclaration": {
+    // Create the function node
     const funcId = newId("func");
     const params = node.params.map(p => getTextBN(p)).join(", ");
     nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
     edges.push(`${prev}->${funcId}`);
 
-    // Walk the function body to generate nodes (like "ফেরত"),
-    // but do NOT connect the last statement to the main flow.
+    // Process the function body inside the function node
     const prevLoopUpdate = currentLoopUpdate;
-    currentLoopUpdate = null;  // reset inside function
-    walk(node.body, funcId);    // build nodes for function body
+    currentLoopUpdate = null;
+
+    // Walk the body to generate nodes like "ফেরত", attached to the function box
+    walk(node.body, funcId);
+
     currentLoopUpdate = prevLoopUpdate;
 
-    // Return the function node itself as the last node in main flow
-    // so top-level statements continue after the function
+    // Return the function node itself as the last node of main flow
+    // Top-level statements continue after it if present
     return funcId;
 }
         
