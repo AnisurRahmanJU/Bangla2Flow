@@ -383,7 +383,7 @@ function buildFlow(ast) {
 
   // ✅ shape decide
   if (hasPromptCall(node.expression) || isConsoleLog(node.expression)) {
-    type = "inputoutput";
+    type = "input";
   }
 
   // 🔤 তোমার আগের replace গুলো 그대로 থাকবে
