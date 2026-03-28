@@ -461,16 +461,15 @@ function getTextBN(node){
         ? `${node.operator}${getTextBN(node.argument)}`
         : `${getTextBN(node.argument)}${node.operator}`;
 
-    /*case "MemberExpression":
-      if(node.computed)
-        return `${getTextBN(node.object)}[${getTextBN(node.property)}]`;
-      return `${getTextBN(node.object)}.${getTextBN(node.property)}`;*/
+    
     case "MemberExpression":
     if(node.computed){
         return `${getTextBN(node.object)}[${getTextBN(node.property)}]`;
     } else {
         let propName = node.property.name;
-        if(propName === "length") propName = "দৈর্ঘ্য";  // convert length to Bangla
+        if(propName === "length") propName = "দৈর্ঘ্য";
+        if(propName === "prompt") propName = "নাও";
+        if(propName === "Number") propName = "নং";
         return `${getTextBN(node.object)}.${propName}`;
     }
 
