@@ -29,9 +29,7 @@ header {
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
-  margin-bottom: 15px;
-  font-size: 15px;
-  font-family: 'Hind Siliguri', sans-serif;
+  margin-bottom: 15px;  
 }
 
 /* Button Grid */
@@ -69,7 +67,6 @@ button:active { transform: scale(0.95); }
   align-items: flex-start;
   padding: 15px;
   box-sizing: border-box;
-  font-family: 'Hind Siliguri', sans-serif;
 }
 
 #output svg {
@@ -88,7 +85,6 @@ button:active { transform: scale(0.95); }
   font-size: 13px;
   min-height: 60px;
   white-space: pre-wrap;
-  font-family: 'Hind Siliguri', sans-serif;
 }
 
 /* --- MOBILE SPECIFIC FIXES --- */
