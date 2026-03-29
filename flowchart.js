@@ -347,7 +347,6 @@ function buildFlow(ast) {
         .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
         .replace(".toLowerCase",".ছোটহাতেরঅক্ষর")
         .replace(".substr",".উপস্ট্রিং")
-        .replace(".find",".খোঁজা")
         .replace(".length",".দৈর্ঘ্য");
 
     // ================== CALL EXPRESSION ==================
