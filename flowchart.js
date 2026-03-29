@@ -493,6 +493,13 @@ function getTextBN(node){
         ? `${node.operator}${getTextBN(node.argument)}`
         : `${getTextBN(node.argument)}${node.operator}`;
 
+  case "ObjectExpression":
+  return `{ ${node.properties.map(p => {
+    const key = p.key.name || p.key.value;
+    const value = getTextBN(p.value);
+    return `${key}: ${value}`;
+  }).join(", ")} }`;
+
     
     case "MemberExpression":
     if(node.computed){
