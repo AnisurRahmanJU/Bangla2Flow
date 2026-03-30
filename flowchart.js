@@ -146,6 +146,7 @@ function downloadImage() {
 
 // ================== AST WALK ==================
 function buildFlow(ast) {
+  let currentFunctionName = null;
   let nodes = ["st=>start: শুরু|start"];
   let edges = [];
   let count = 1;
@@ -276,13 +277,29 @@ function buildFlow(ast) {
         return afterSwitch;
       }
 
-      case "FunctionDeclaration": {
+      /*case "FunctionDeclaration": {
         const funcId = newId("func");
         const params = node.params.map(p => getTextBN(p)).join(", ");
         nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
         edges.push(`${prev}->${funcId}`);
         return walk(node.body, funcId);
-      } 
+      } */
+
+  case "FunctionDeclaration": {
+  const funcId = newId("func");
+  const params = node.params.map(p => getTextBN(p)).join(", ");
+  
+  currentFunctionName = node.id.name; // ✅ ADD THIS
+
+  nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
+  edges.push(`${prev}->${funcId}`);
+
+  const result = walk(node.body, funcId);
+
+  currentFunctionName = null; // ✅ RESET
+
+  return result;
+}
 
 
       case "ReturnStatement": {
@@ -349,7 +366,8 @@ function buildFlow(ast) {
         .replace(".substr",".উপস্ট্রিং")
         .replace(".length",".দৈর্ঘ্য");
 
-    // ================== CALL EXPRESSION ==================
+    /*// ================== CALL EXPRESSION ==================
+     
     if(expr.type === "CallExpression") {
         const callee = expr.callee;
 
@@ -384,7 +402,39 @@ function buildFlow(ast) {
             nodes.push(`${ioId}=>inputoutput: ${txt}`);
             edges.push(`${prev}->${ioId}`);
             return ioId;
-        }
+        }*/
+
+     if(expr.type === "CallExpression") {
+    const calleeName = expr.callee.name;
+
+    // ✅ RECURSIVE CALL DETECT
+    if(calleeName && calleeName === currentFunctionName) {
+        const callId = newId("call");
+
+        nodes.push(`${callId}=>condition: ${calleeName}(${expr.arguments.map(getTextBN).join(", ")})`);
+
+        edges.push(`${prev}->${callId}`);
+
+        // YES → function re-call
+        edges.push(`${callId}(yes)->${currentFunctionName}`);
+
+        // NO → continue
+        const nextId = newId("afterCall");
+        nodes.push(`${nextId}=>operation: return`);
+
+        edges.push(`${callId}(no)->${nextId}`);
+
+        return nextId;
+    }
+
+    // default
+    const opId = newId("op");
+    let txt = replaceBanglaMethods(getTextBN(expr));
+
+    nodes.push(`${opId}=>operation: ${txt}`);
+    edges.push(`${prev}->${opId}`);
+    return opId;
+}
 
         // ===== prompt → নাও =====
         if(callee.name === "prompt") {
