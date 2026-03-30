@@ -4,6 +4,12 @@
 
 এটি শিক্ষার্থীদের জন্য এবং যারা বাংলায় কোডিং করতে চায় তাদের জন্য খুবই সহজ।
 
+# Library
+
+- `Graphviz, viz.js`
+- `Flowchert Script, flowchart.js`
+- `Marmaid JS`
+
 ---
 
 ##  বৈশিষ্ট্যসমূহ 
