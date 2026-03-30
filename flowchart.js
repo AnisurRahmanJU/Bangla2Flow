@@ -293,23 +293,35 @@ function buildFlow(ast) {
         edges.push(`${prev}->${rId}`);
         return rId;
       }*/
-    case "FunctionDeclaration": {
+   case "FunctionDeclaration": {
+    // Create a unique node ID for the function
     const funcId = newId("func");
+
+    // Get function parameters as text
     const params = node.params.map(p => getTextBN(p)).join(", ");
+
+    // Add function node to the flowchart
     nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
+
+    // Connect previous node to this function node
     edges.push(`${prev}->${funcId}`);
 
+    // Save previous function context
     const prevFunctionName = currentFunctionName;
     const prevFunctionNodeId = currentFunctionNodeId;
 
+    // Update current function context
     currentFunctionName = node.id.name;
     currentFunctionNodeId = funcId;
 
+    // Walk the function body
     const bodyEnd = walk(node.body, funcId);
 
+    // Restore previous function context
     currentFunctionName = prevFunctionName;
     currentFunctionNodeId = prevFunctionNodeId;
 
+    // Return the last node of the function body for further chaining
     return bodyEnd;
 }
 
@@ -317,21 +329,25 @@ function buildFlow(ast) {
     const rId = newId("ret");
     const retText = getTextBN(node.argument);
 
+    // Check if this return is a recursive call to the current function
     let isRecursive = node.argument &&
                       node.argument.type === "CallExpression" &&
                       node.argument.callee.type === "Identifier" &&
                       node.argument.callee.name === currentFunctionName;
 
+    // Add the return node
     if (isRecursive) {
         nodes.push(`${rId}=>operation: ফেরত ${retText} (recursive)`);
         edges.push(`${prev}->${rId}`);
 
-        // Normal solid arrow back to function start node
+        // Normal arrow from recursive return back to function node
         edges.push(`${rId}->${currentFunctionNodeId}`);
     } else {
         nodes.push(`${rId}=>operation: ফেরত ${retText}`);
         edges.push(`${prev}->${rId}`);
     }
+
+    // Return the ID of this node for further flow connections
     return rId;
 }
         
