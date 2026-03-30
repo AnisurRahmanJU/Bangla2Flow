@@ -297,11 +297,45 @@ function buildFlow(ast) {
     const arg = node.argument;
     const rId = newId("ret");
 
-    // If the return is a CallExpression → subroutine
-    if(arg && arg.type === "CallExpression") {
+    // Recursive check if expression contains a CallExpression
+    function hasFunctionCall(node) {
+        if (!node) return false;
+        if (node.type === "CallExpression") return true;
+
+        // Check children recursively
+        switch(node.type) {
+            case "BinaryExpression":
+            case "LogicalExpression":
+                return hasFunctionCall(node.left) || hasFunctionCall(node.right);
+
+            case "UnaryExpression":
+            case "UpdateExpression":
+                return hasFunctionCall(node.argument);
+
+            case "MemberExpression":
+                return hasFunctionCall(node.object) || hasFunctionCall(node.property);
+
+            case "ConditionalExpression":
+                return hasFunctionCall(node.test) || hasFunctionCall(node.consequent) || hasFunctionCall(node.alternate);
+
+            case "AssignmentExpression":
+                return hasFunctionCall(node.left) || hasFunctionCall(node.right);
+
+            case "ArrayExpression":
+                return node.elements.some(hasFunctionCall);
+
+            case "ObjectExpression":
+                return node.properties.some(p => hasFunctionCall(p.value));
+
+            default:
+                return false;
+        }
+    }
+
+    // Use subroutine if the return contains a function call
+    if (hasFunctionCall(arg)) {
         nodes.push(`${rId}=>subroutine: ফেরত ${getTextBN(arg)}`);
     } else {
-        // Everything else → operation
         nodes.push(`${rId}=>operation: ফেরত ${getTextBN(arg)}`);
     }
 
