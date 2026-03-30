@@ -293,21 +293,20 @@ function buildFlow(ast) {
         edges.push(`${prev}->${rId}`);
         return rId;
       }*/
-      case "FunctionDeclaration": {
+    case "FunctionDeclaration": {
     const funcId = newId("func");
     const params = node.params.map(p => getTextBN(p)).join(", ");
     nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
     edges.push(`${prev}->${funcId}`);
 
-    // Track current function for recursion
     const prevFunctionName = currentFunctionName;
     const prevFunctionNodeId = currentFunctionNodeId;
+
     currentFunctionName = node.id.name;
     currentFunctionNodeId = funcId;
 
     const bodyEnd = walk(node.body, funcId);
 
-    // Restore previous function context
     currentFunctionName = prevFunctionName;
     currentFunctionNodeId = prevFunctionNodeId;
 
@@ -318,31 +317,29 @@ function buildFlow(ast) {
     const rId = newId("ret");
     const retText = getTextBN(node.argument);
 
-    // Check for recursive call: return fnName(...)
-    let isRecursive = false;
-    if (
-        node.argument &&
-        node.argument.type === "CallExpression" &&
-        node.argument.callee.type === "Identifier" &&
-        node.argument.callee.name === currentFunctionName
-    ) {
-        isRecursive = true;
-    }
+    let isRecursive = node.argument &&
+                      node.argument.type === "CallExpression" &&
+                      node.argument.callee.type === "Identifier" &&
+                      node.argument.callee.name === currentFunctionName;
 
     if (isRecursive) {
+        // Create only one node for recursive return (no extra merge nodes)
         nodes.push(`${rId}=>operation: ফেরত ${retText} (recursive)`);
 
-        // Connect return to function start to visualize recursion
+        // Connect previous node to this return node
         edges.push(`${prev}->${rId}`);
-        edges.push(`${rId}->${currentFunctionNodeId}`); 
+
+        // Connect return node directly back to function start node
+        edges.push(`${rId}->${currentFunctionNodeId}`);
+
+        // **Return the recursive return node ID to continue flow**
+        return rId;
     } else {
         nodes.push(`${rId}=>operation: ফেরত ${retText}`);
         edges.push(`${prev}->${rId}`);
+        return rId;
     }
-
-    return rId;
 }
-        
 
       case "BreakStatement": {
         const bId = newId("brk");
