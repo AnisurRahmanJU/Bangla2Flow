@@ -146,6 +146,8 @@ function downloadImage() {
 
 // ================== AST WALK ==================
 function buildFlow(ast) {
+  let currentFunctionName = null;
+ let currentFunctionNodeId = null;
   let nodes = ["st=>start: শুরু|start"];
   let edges = [];
   let count = 1;
