@@ -150,6 +150,7 @@ function buildFlow(ast) {
   let nodes = ["st=>start: শুরু|start"];
   let edges = [];
   let count = 1;
+  const callee = expr.callee;
   let currentFunctionName = null;
   let currentFunctionId = null; // ✅ ADD THIS
   const newId = (pre) => pre + (count++);
@@ -408,7 +409,8 @@ function buildFlow(ast) {
         }*/
 
      if(expr.type === "CallExpression") {
-    const calleeName = expr.callee.name;
+    const callee = expr.callee;   // ✅ ADD THIS
+    const calleeName = callee.name;
 
     // ✅ RECURSIVE CALL
     if(calleeName && calleeName === currentFunctionName) {
@@ -419,7 +421,6 @@ function buildFlow(ast) {
         nodes.push(`${callId}=>condition: 🔁 ${calleeName}(${args})`);
         edges.push(`${prev}->${callId}`);
 
-        // ✅ FIXED (use function ID, not name)
         edges.push(`${callId}(yes)->${currentFunctionId}`);
 
         const nextId = newId("after");
