@@ -276,7 +276,7 @@ function buildFlow(ast) {
         return afterSwitch;
       }
 
-      case "FunctionDeclaration": {
+      /*case "FunctionDeclaration": {
         const funcId = newId("func");
         const params = node.params.map(p => getTextBN(p)).join(", ");
         nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
@@ -290,7 +290,57 @@ function buildFlow(ast) {
         nodes.push(`${rId}=>operation: ফেরত ${getTextBN(node.argument)}`);
         edges.push(`${prev}->${rId}`);
         return rId;
-      }
+      }*/
+      case "FunctionDeclaration": {
+    const funcId = newId("func");
+    const params = node.params.map(p => getTextBN(p)).join(", ");
+    nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
+    edges.push(`${prev}->${funcId}`);
+
+    // Track current function for recursion
+    const prevFunctionName = currentFunctionName;
+    const prevFunctionNodeId = currentFunctionNodeId;
+    currentFunctionName = node.id.name;
+    currentFunctionNodeId = funcId;
+
+    const bodyEnd = walk(node.body, funcId);
+
+    // Restore previous function context
+    currentFunctionName = prevFunctionName;
+    currentFunctionNodeId = prevFunctionNodeId;
+
+    return bodyEnd;
+}
+
+    case "ReturnStatement": {
+    const rId = newId("ret");
+    const retText = getTextBN(node.argument);
+
+    // Check for recursive call: return fnName(...)
+    let isRecursive = false;
+    if (
+        node.argument &&
+        node.argument.type === "CallExpression" &&
+        node.argument.callee.type === "Identifier" &&
+        node.argument.callee.name === currentFunctionName
+    ) {
+        isRecursive = true;
+    }
+
+    if (isRecursive) {
+        nodes.push(`${rId}=>operation: ফেরত ${retText} (recursive)`);
+
+        // Connect return to function start to visualize recursion
+        edges.push(`${prev}->${rId}`);
+        edges.push(`${rId}->${currentFunctionNodeId}`); 
+    } else {
+        nodes.push(`${rId}=>operation: ফেরত ${retText}`);
+        edges.push(`${prev}->${rId}`);
+    }
+
+    return rId;
+}
+        
 
       case "BreakStatement": {
         const bId = newId("brk");
