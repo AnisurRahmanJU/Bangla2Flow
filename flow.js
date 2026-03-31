@@ -82,11 +82,12 @@ function banglaToJS(code){
 function generateFlowchart() {
   const bnCode = editor.getValue();
   const code = banglaToJS(bnCode);
+  let isFlowchartGenerated = false;
 
   const output = document.getElementById("output");
   output.innerHTML = ""; 
 
-  try {
+  /*try {
     const ast = esprima.parseScript(code, { range: true });
     const flowCode = buildFlow(ast);
     const diagram = flowchart.parse(flowCode);
@@ -115,7 +116,38 @@ function generateFlowchart() {
   } catch (err) {
     output.innerHTML = `<p style="color:red">${err.message}</p>`;
   }
+}*/
+try {
+  const ast = esprima.parseScript(code, { range: true });
+  const flowCode = buildFlow(ast);
+  const diagram = flowchart.parse(flowCode);
+
+  diagram.drawSVG(output, {
+      'line-width': 2,
+      'line-length': isMobile ? 35 : 50,
+      'text-margin': 10,
+      'font-size': isMobile ? 13 : 14,
+      'font-family': 'Inter',
+      'yes-text': 'হ্যাঁ',
+      'no-text': 'না',
+      'scale': isMobile ? 0.85 : 1,
+      'symbols': {
+        'start': { 'fill': '#6aa84f', 'font-color':'#fff' },
+        'end': { 'fill': '#e06666', 'font-color':'#fff' },
+        'operation': { 'fill': '#f6b26b', 'font-color':'#000' },
+        'condition': { 'fill': '#3d85c6', 'font-color':'#fff' },
+        'inputoutput': { 'fill': '#ffd966', 'font-color':'#000' },
+        'subroutine': { 'fill': '#8e7cc3', 'font-color':'#fff' }
+      }
+    });
+
+  isFlowchartGenerated = true; // ✅ success
+
+} catch (err) {
+  output.innerHTML = `<p style="color:red">${err.message}</p>`;
+  isFlowchartGenerated = false; // ❌ fail
 }
+  
 
 // ================== DOWNLOAD FLOWCHART ==================
 function downloadImage() {
@@ -609,7 +641,7 @@ function getTextBN(node){
 
 
 
-// ================== RUN ==================
+/*// ================== RUN ==================
 function runCode(){
   const consoleEl = document.getElementById("console");
   consoleEl.innerText = "";
@@ -618,8 +650,34 @@ function runCode(){
   console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
   try{ eval(code); } catch(err){ consoleEl.innerText+="Error: "+err.message; }
   console.log = originalLog;
-} 
+} */
+
+  function runCode(){
+  const consoleEl = document.getElementById("console");
+
+  // ❌ Flowchart না হলে run বন্ধ
+  if (!isFlowchartGenerated) {
+    alert("দয়া করে আগে ফ্লোচার্ট তৈরি করুন, তারপর কোড রান করুন!");
+    return;
+  }
+
+  consoleEl.innerText = "";
+  const code = banglaToJS(editor.getValue());
+
+  const originalLog = console.log;
+  console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
+
+  try {
+    eval(code);
+  } catch(err) {
+    consoleEl.innerText+="Error: "+err.message;
+  }
+
+  console.log = originalLog;
+}
 
 
 // ================== DOWNLOAD BUTTON ==================
 document.getElementById("downloadBtn")?.addEventListener("click", downloadImage);
+
+  
