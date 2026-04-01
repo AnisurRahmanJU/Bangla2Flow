@@ -26,17 +26,19 @@
     transition: 0.3s;
   }
 
-  /* 🔴 Disabled অবস্থায় */
+  /*  Disabled অবস্থায় */
   #runBtn:disabled {
     background-color: #ccc;
     color: #666;
     cursor: not-allowed;
+    font-size: 10px;
   }
 
-  /* 🟢 Enabled অবস্থায় */
+  /*  Enabled অবস্থায় */
   #runBtn:not(:disabled) {
     background-color: #28a745;
     color: white;
+    font-size: 10px;
   }
 
   #runBtn:not(:disabled):hover {
