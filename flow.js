@@ -124,6 +124,8 @@ function generateFlowchart() {
   const code = banglaToJS(bnCode);
 
   const output = document.getElementById("output");
+  const runBtn = document.getElementById("runBtn");
+
   output.innerHTML = "";
 
   try {
@@ -152,22 +154,16 @@ function generateFlowchart() {
       }
     });
 
-    // ✅ Flowchart successfully generated
-    isFlowchartGenerated = true;
+    // ✅ Enable Run button
+    runBtn.disabled = false;
 
   } catch (err) {
-    // ❌ Error হলে flowchart invalid
-    isFlowchartGenerated = false;
+    // ❌ Error হলে আবার disable
+    runBtn.disabled = true;
 
-    output.innerHTML = `
-      <p style="color:red; font-weight:bold;">
-        ❌ ফ্লোচার্ট তৈরি করা যায়নি <br>
-        ${err.message}
-      </p>
-    `;
+    output.innerHTML = `<p style="color:red">${err.message}</p>`;
   }
 }
-
 // ================== DOWNLOAD FLOWCHART ==================
 function downloadImage() {
   const svg = document.querySelector("#output svg");
@@ -661,7 +657,7 @@ function getTextBN(node){
 
 
 // ================== RUN ==================
-/*function runCode(){
+function runCode(){
   const consoleEl = document.getElementById("console");
   consoleEl.innerText = "";
   const code = banglaToJS(editor.getValue());
@@ -669,34 +665,7 @@ function getTextBN(node){
   console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
   try{ eval(code); } catch(err){ consoleEl.innerText+="Error: "+err.message; }
   console.log = originalLog;
-} */
-
-function runCode(){
-
-  console.log("Flowchart status:", isFlowchartGenerated); // debug
-
-  if(isFlowchartGenerated === false){
-    alert("দয়া করে আগে ফ্লোচার্ট তৈরি করুন!");
-    return;
-  }
-
-  const consoleEl = document.getElementById("console");
-  consoleEl.innerText = "";
-
-  const code = banglaToJS(editor.getValue());
-
-  const originalLog = console.log;
-  console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
-
-  try{ 
-    eval(code); 
-  } catch(err){ 
-    consoleEl.innerText+="Error: "+err.message; 
-  }
-
-  console.log = originalLog;
-}
-
+} 
 
 
 // ================== DOWNLOAD BUTTON ==================
