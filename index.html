@@ -16,6 +16,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.15.0/flowchart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/esprima/dist/esprima.min.js"></script>
+  <style>
+  #runBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  /* 🔴 Disabled অবস্থায় */
+  #runBtn:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+  }
+
+  /* 🟢 Enabled অবস্থায় */
+  #runBtn:not(:disabled) {
+    background-color: #28a745;
+    color: white;
+  }
+
+  #runBtn:not(:disabled):hover {
+    background-color: #218838;
+  }
+</style>
 </head>
 <body>
 
