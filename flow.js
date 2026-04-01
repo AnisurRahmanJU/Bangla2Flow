@@ -124,13 +124,13 @@ function generateFlowchart() {
   const code = banglaToJS(bnCode);
 
   const output = document.getElementById("output");
-  output.innerHTML = ""; 
+  output.innerHTML = "";
 
   try {
     const ast = esprima.parseScript(code, { range: true });
     const flowCode = buildFlow(ast);
     const diagram = flowchart.parse(flowCode);
-    
+
     const isMobile = window.innerWidth <= 600;
 
     diagram.drawSVG(output, {
@@ -152,15 +152,21 @@ function generateFlowchart() {
       }
     });
 
-    // ✅ SUCCESS হলে true
+    // ✅ Flowchart successfully generated
     isFlowchartGenerated = true;
 
   } catch (err) {
-    isFlowchartGenerated = false; // ❌ error হলে false
-    output.innerHTML = `<p style="color:red">${err.message}</p>`;
+    // ❌ Error হলে flowchart invalid
+    isFlowchartGenerated = false;
+
+    output.innerHTML = `
+      <p style="color:red; font-weight:bold;">
+        ❌ ফ্লোচার্ট তৈরি করা যায়নি <br>
+        ${err.message}
+      </p>
+    `;
   }
 }
-
 
 // ================== DOWNLOAD FLOWCHART ==================
 function downloadImage() {
@@ -667,8 +673,10 @@ function getTextBN(node){
 
 function runCode(){
 
-  if(!isFlowchartGenerated){
-    alert("দয়া করে আগে ফ্লোচার্ট তৈরি করুন, তারপর কোড রান করুন!");
+  console.log("Flowchart status:", isFlowchartGenerated); // debug
+
+  if(isFlowchartGenerated === false){
+    alert("দয়া করে আগে ফ্লোচার্ট তৈরি করুন!");
     return;
   }
 
