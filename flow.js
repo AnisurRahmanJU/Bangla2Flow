@@ -278,14 +278,7 @@ function buildFlow(ast) {
         if(lastCaseEnd) edges.push(`${lastCaseEnd}(no)->${afterSwitch}`);
         return afterSwitch;
       }
-
-      /*case "FunctionDeclaration": {
-        const funcId = newId("func");
-        const params = node.params.map(p => getTextBN(p)).join(", ");
-        nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
-        edges.push(`${prev}->${funcId}`);
-        return walk(node.body, funcId);
-      } */
+  
     
     case "FunctionDeclaration": {
     const funcId = newId("func");
