@@ -1,139 +1,263 @@
-/* Import Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap');
+/* ================= GENERAL STYLING ================= */
+* { 
+  box-sizing: border-box; 
+}
 
-/* General Body Styling */
 body {
   margin: 0;
-  font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Devanagari', sans-serif;
-  background: #f8f9fa;
-  color: #333;
+  font-family: 'Inter', 'Hind Siliguri', sans-serif;
+  background: #f0f9f4; 
+  color: #2d3748;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
+/* ================= HEADER STYLING ================= */
 header {
-  background: #007bff;
+  background: #1a2e22; 
   color: white;
-  padding: 20px;
-  text-align: center;
+  padding: 16px 24px;
+  text-align: left;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.container {
-  max-width: 1100px;
-  margin: 10px auto;
+.logo-container h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  display: inline-block;
+}
+
+.logo-main { 
+  color: #ffffff; 
+}
+
+.logo-highlight { 
+  color: #4ade80; 
+}
+
+.site-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #a7f3d0;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* ================= IDE LAYOUT CONTAINER ================= */
+.ide-container {
+  max-width: 1400px;
+  width: 100%;
+  margin: 20px auto;
   padding: 0 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-/* --- EDITOR SECTION (Horizontal Scroll with Right Blank Space) --- */
-#editor {
-  height: 280px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  margin-bottom: 15px;
-  
-  /* Main Scrolling Logic */
-  overflow-x: auto;       
-  overflow-y: auto;       
-  display: block;
-}
-
-/* 
-   এখানে padding-right বাড়ানো হয়েছে যাতে ডানে পর্যাপ্ত Blank Space থাকে।
-   display: inline-block নিশ্চিত করে যে প্যাডিংটি স্ক্রলবারকে বড় করবে।
-*/
-#editor code, 
-#editor pre, 
-#editor textarea, 
-#editor [contenteditable="true"], 
-.cm-content {
-  white-space: pre !important; 
-  word-wrap: normal !important;
-  display: inline-block;    /* ডানে জায়গা তৈরির জন্য এটি অত্যন্ত জরুরি */
-  min-width: 100%;          /* টেক্সট ছোট থাকলেও যাতে এডিটর পূর্ণ থাকে */
-  padding-right: 300px;     /* ডানে ৩০০ পিক্সেল অতিরিক্ত খালি জায়গা */
-  padding-bottom: 0px;      /* নিচে বাড়তি জায়গা রাখা হয়নি আপনার অনুরোধ অনুযায়ী */
-  box-sizing: border-box;
-  outline: none;
-}
-
-/* Button Grid */
-.buttons {
+.workspace {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d1e7dd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #1e3a1e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================= CONTROL GROUP & BUTTONS ================= */
+.button-group {
+  display: flex;
+  flex-direction: row; 
   gap: 10px;
-  margin-bottom: 20px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.output-button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto; 
 }
 
 button {
-  padding: 12px;
+  padding: 12px 15px;
   font-weight: 600;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  background: #007bff;
-  color: white;
-  transition: 0.3s;
+  transition: all 0.2s;
   font-family: 'Hind Siliguri', sans-serif;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1; 
+  white-space: nowrap; 
 }
 
-button:active { transform: scale(0.95); }
+button:active { 
+  transform: scale(0.97); 
+}
 
-/* --- FLOWCHART VIEWPORT --- */
+.btn-run { background: #22c55e; color: white; }
+.btn-run:hover { background: #16a34a; box-shadow: 0 4px 8px rgba(34,197,94,0.2); }
+
+.btn-action { background: #15803d; color: white; }
+.btn-action:hover { background: #166534; box-shadow: 0 4px 8px rgba(21,128,61,0.2); }
+
+.btn-download { background: #0891b2; color: white; }
+.btn-download:hover { background: #0e7490; }
+
+.btn-example { background: #475569; color: white; text-decoration: none; width: 100%; }
+.btn-example:hover { background: #334155; }
+
+/* ================= CODE EDITOR (Ocean Light Blue Viewport) ================= */
+#editor {
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #b2d2e8;
+  overflow: hidden;
+}
+
+.CodeMirror {
+  background: #f2f7fc !important; 
+  color: #2c3e50 !important; 
+  height: 320px;
+  font-size: 15px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.CodeMirror-cursor { 
+  border-left: 2px solid #2980b9 !important; 
+}
+
+.CodeMirror-lines {
+  white-space: pre !important;
+}
+
+/* ================= CONSOLE VIEWPORT ================= */
+#console {
+  background: #111827;
+  color: #a7f3d0;
+  padding: 15px;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  height: 140px;
+  margin: 0;
+  overflow-y: auto;       
+  border: 1px solid #374151;
+  width: 100%;
+}
+
+/* ================= FLOWCHART CANVAS CONTAINER ================= */
 #output {
   width: 100%;
-  height: 500px;
+  height: 520px; 
   overflow: auto; 
-  border: 2px solid #eee;
-  background: #ffffff;
-  border-radius: 8px;
+  border: 1px solid #b7e4c7;
+  background: #eef7f2; 
+  border-radius: 6px;
+  display: block; 
+  padding: 20px;
+  margin-bottom: 15px;
+  position: relative;
+  -webkit-overflow-scrolling: touch; 
+}
+
+#output svg { 
+  display: block; 
+  margin: 0 auto; 
+  min-width: max-content; 
+}
+
+/* ================= COMPILER SYNTAX HIGHLIGHTING ================= */
+.cm-comment-custom { color: #7f8c8d; font-style: italic; } 
+.cm-string-custom { color: #b84a39; } 
+
+.cm-kw-control { color: #8e44ad; font-weight: 600; } 
+.cm-kw-declaration { color: #d81b60; font-weight: 600; } 
+.cm-kw-logic { color: #e67e22; font-weight: 600; } 
+.cm-kw-statement { color: #16a085; font-weight: 600; } 
+
+.cm-func-call { color: #0056b3; font-weight: 500; } 
+.cm-object-access { color: #2c3e50; font-weight: 500; } 
+.cm-bangla-number { color: #27ae60; font-weight: 600; } 
+.cm-variable-custom { color: #2c3e50; } 
+
+/* ================= FOOTER ================= */
+
+/* ================= FOOTER ================= */
+footer {
+  background: #1a2e22;
+  color: #cbd5e1;
+  padding: 22px 20px;
+  text-align: center;
+  margin-top: 40px;
+  font-size: 14px;
+}
+
+.footer-links {
   display: flex;
-  justify-content: center; 
-  align-items: flex-start;
-  padding: 15px;
-  box-sizing: border-box;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
-#output svg {
-  display: block;
-  margin: 0 auto;
+.footer-links a {
+  color: inherit;          /* টেক্সটের মেইন কালার ইনহেরিট করবে */
+  text-decoration: none;   /* ডিফল্ট আন্ডারলাইন রিমুভ করবে */
+  font-weight: 500;
+  transition: opacity 0.2s;
 }
 
-/* --- CONSOLE STYLING (Vertical Only Scroll) --- */
-#console {
-  background: #1e1e1e;
-  color: #00ff00;
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 15px;
-  font-family: 'Fira Code', 'Courier New', monospace;
-  font-size: 13px;
-  height: 120px;
-  
-  /* Vertical Only Scrolling */
-  overflow-y: auto;       
-  overflow-x: hidden;     
-  white-space: pre-wrap;  
-  word-break: break-all;
+.footer-links a:hover { 
+  color: inherit;          /* হোভারেও কালার অপরিবর্তিত থাকবে */
+  text-decoration: none;   /* হোভার করলেও আন্ডারলাইন আসবে না */
+  opacity: 0.8;            /* হোভার ইফেক্ট বোঝানোর জন্য হালকা অপাসিটি কমবে */
 }
 
-/* --- MOBILE SPECIFIC FIXES --- */
-@media (max-width: 600px) {
-  .buttons { grid-template-columns: 1fr; }
-  
-  #output { 
-    display: block; 
-    height: 450px;
-  }
-
-  #output svg {
-    max-width: none !important; 
-    margin: 0;
-  }
+.developer-info { 
+  font-size: 13px; 
+  color: #94a3b8; 
+}
+.developer-info { 
+  font-size: 13px; 
+  color: #94a3b8; 
 }
 
-/* ================= SYNTAX HIGHLIGHT ================= */
-.cm-variable-custom { color: #555; font-weight: 500; }
-.cm-keyword-custom { color: purple; font-weight: 600; }
-.cm-func-call { color: blue; font-weight: 500; }
-.cm-object-access { color: orange; font-weight: 500; }
-.cm-bangla-number { color: limegreen; font-weight: 600; }
+/* ================= RESPONSIVE VIEWPORT ================= */
+@media (max-width: 850px) {
+  .workspace { grid-template-columns: 1fr; }
+  #output { height: 400px; } 
+  button { font-size: 12px; padding: 12px 10px; gap: 4px; }
+  header { text-align: center; }
+}
