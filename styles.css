@@ -138,7 +138,7 @@ button:active {
 .btn-example { background: #475569; color: white; text-decoration: none; width: 100%; }
 .btn-example:hover { background: #334155; }
 
-/* ================= CODE EDITOR (Ocean Light Blue Viewport) ================= */
+/* ================= CODE EDITOR CONTAINER ================= */
 #editor {
   margin-bottom: 15px;
   border-radius: 6px;
@@ -177,25 +177,30 @@ button:active {
   width: 100%;
 }
 
-/* ================= FLOWCHART CANVAS CONTAINER ================= */
+/* ================= STRICT FIXED FLOWCHART AREA WITH AUTO OVERFLOW ================= */
 #output {
-  width: 100%;
-  height: 520px; 
-  overflow: auto; 
+  width: 100% !important;
+  height: 520px !important;    /* একদম ফিক্সড হাইট */
+  max-height: 520px !important;
+  overflow-x: auto !important;  /* হরিজন্টাল স্ক্রোল ফোর্স */
+  overflow-y: auto !important;  /* ভার্টিকাল স্ক্রোল ফোর্স */
   border: 1px solid #b7e4c7;
   background: #eef7f2; 
   border-radius: 6px;
-  display: block; 
   padding: 20px;
   margin-bottom: 15px;
-  position: relative;
+  position: relative !important;
+  display: block !important;
+  contain: size layout style;  /* লেআউট ইঞ্জিনকে বাউন্ডারির বাইরে যেতে বাধা দেবে */
   -webkit-overflow-scrolling: touch; 
 }
 
+/* SVG স্ক্রোল ফ্রেন্ডলি করার জন্য কাস্টম কনফিগারেশন */
 #output svg { 
-  display: block; 
-  margin: 0 auto; 
-  min-width: max-content; 
+  display: inline-block !important; 
+  margin: 0 !important;
+  max-width: none !important;  
+  max-height: none !important;
 }
 
 /* ================= COMPILER SYNTAX HIGHLIGHTING ================= */
@@ -212,9 +217,7 @@ button:active {
 .cm-bangla-number { color: #27ae60; font-weight: 600; } 
 .cm-variable-custom { color: #2c3e50; } 
 
-/* ================= FOOTER ================= */
-
-/* ================= FOOTER ================= */
+/* ================= FOOTER (UNDERLINE REMOVED & COLOR INHERIT) ================= */
 footer {
   background: #1a2e22;
   color: #cbd5e1;
@@ -233,22 +236,18 @@ footer {
 }
 
 .footer-links a {
-  color: inherit;          /* টেক্সটের মেইন কালার ইনহেরিট করবে */
-  text-decoration: none;   /* ডিফল্ট আন্ডারলাইন রিমুভ করবে */
+  color: inherit;          
+  text-decoration: none;   
   font-weight: 500;
   transition: opacity 0.2s;
 }
 
 .footer-links a:hover { 
-  color: inherit;          /* হোভারেও কালার অপরিবর্তিত থাকবে */
-  text-decoration: none;   /* হোভার করলেও আন্ডারলাইন আসবে না */
-  opacity: 0.8;            /* হোভার ইফেক্ট বোঝানোর জন্য হালকা অপাসিটি কমবে */
+  color: inherit;          
+  text-decoration: none;   
+  opacity: 0.8;            
 }
 
-.developer-info { 
-  font-size: 13px; 
-  color: #94a3b8; 
-}
 .developer-info { 
   font-size: 13px; 
   color: #94a3b8; 
@@ -257,7 +256,7 @@ footer {
 /* ================= RESPONSIVE VIEWPORT ================= */
 @media (max-width: 850px) {
   .workspace { grid-template-columns: 1fr; }
-  #output { height: 400px; } 
+  #output { height: 400px !important; max-height: 400px !important; } 
   button { font-size: 12px; padding: 12px 10px; gap: 4px; }
   header { text-align: center; }
 }
