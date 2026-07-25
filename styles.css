@@ -1,0 +1,292 @@
+/* ================= GENERAL STYLING ================= */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Hind Siliguri', sans-serif;
+  background: #f0f9f4;
+  color: #2d3748;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ================= HEADER STYLING ================= */
+header {
+  background: #1a2e22;
+  color: white;
+  padding: 16px 24px;
+  text-align: left;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logo-container h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  display: inline-block;
+}
+
+.logo-main {
+  color: #ffffff;
+}
+
+.logo-highlight {
+  color: #4ade80;
+}
+
+.site-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #a7f3d0;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* ================= IDE LAYOUT CONTAINER ================= */
+.ide-container {
+  max-width: 1400px;
+  width: 100%;
+  margin: 20px auto;
+  padding: 0 15px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d1e7dd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #1e3a1e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================= CONTROL GROUP & BUTTONS ================= */
+.button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.output-button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto;
+}
+
+button {
+  padding: 12px 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Hind Siliguri', sans-serif;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  white-space: nowrap;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-run { background: #22c55e; color: white; }
+.btn-run:hover { background: #16a34a; box-shadow: 0 4px 8px rgba(34,197,94,0.2); }
+
+.btn-action { background: #15803d; color: white; }
+.btn-action:hover { background: #166534; box-shadow: 0 4px 8px rgba(21,128,61,0.2); }
+
+.btn-download { background: #0891b2; color: white; }
+.btn-download:hover { background: #0e7490; }
+
+.btn-example { background: #475569; color: white; text-decoration: none; width: 100%; }
+.btn-example:hover { background: #334155; }
+
+/* ================= STEP-BY-STEP EXECUTION BUTTONS ================= */
+.step-control-group {
+  flex-wrap: wrap;
+}
+
+.btn-step-start { background: #7c3aed; color: white; }
+.btn-step-start:hover:not(:disabled) { background: #6d28d9; box-shadow: 0 4px 8px rgba(124,58,237,0.25); }
+
+.btn-step-next { background: #2563eb; color: white; }
+.btn-step-next:hover:not(:disabled) { background: #1d4ed8; box-shadow: 0 4px 8px rgba(37,99,235,0.25); }
+
+.btn-step-auto { background: #ea580c; color: white; }
+.btn-step-auto:hover:not(:disabled) { background: #c2410c; box-shadow: 0 4px 8px rgba(234,88,12,0.25); }
+
+.btn-step-reset { background: #64748b; color: white; }
+.btn-step-reset:hover:not(:disabled) { background: #475569; }
+
+/* ================= CODE EDITOR CONTAINER ================= */
+#editor {
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #b2d2e8;
+  overflow: hidden;
+}
+
+.CodeMirror {
+  background: #f2f7fc !important;
+  color: #2c3e50 !important;
+  height: 320px;
+  font-size: 15px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+.CodeMirror-cursor {
+  border-left: 2px solid #2980b9 !important;
+}
+
+.CodeMirror-lines {
+  white-space: pre !important;
+}
+
+/* বর্তমানে এক্সিকিউট হচ্ছে এমন লাইন হাইলাইট (স্টেপ মোড ইন্ডিকেটর) */
+.CodeMirror .step-current-line {
+  background: #fef08a !important;
+  box-shadow: inset 4px 0 0 0 #ca8a04;
+}
+
+/* ================= CONSOLE VIEWPORT ================= */
+#console {
+  background: #111827;
+  color: #a7f3d0;
+  padding: 15px;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  height: 140px;
+  margin: 0;
+  overflow-y: auto;
+  border: 1px solid #374151;
+  width: 100%;
+}
+
+/* ================= STRICT FIXED FLOWCHART AREA WITH AUTO OVERFLOW ================= */
+#output {
+  width: 100% !important;
+  height: 520px !important;    /* একদম ফিক্সড হাইট */
+  max-height: 520px !important;
+  overflow-x: auto !important;  /* হরিজন্টাল স্ক্রোল ফোর্স */
+  overflow-y: auto !important;  /* ভার্টিকাল স্ক্রোল ফোর্স */
+  border: 1px solid #b7e4c7;
+  background: #eef7f2;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 15px;
+  position: relative !important;
+  display: block !important;
+  contain: size layout style;  /* লেআউট ইঞ্জিনকে বাউন্ডারির বাইরে যেতে বাধা দেবে */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* SVG স্ক্রোল ফ্রেন্ডলি করার জন্য কাস্টম কনফিগারেশন */
+#output svg {
+  display: inline-block !important;
+  margin: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* ================= COMPILER SYNTAX HIGHLIGHTING ================= */
+.cm-comment-custom { color: #7f8c8d; font-style: italic; }
+.cm-string-custom { color: #b84a39; }
+
+.cm-kw-control { color: #8e44ad; font-weight: 600; }
+.cm-kw-declaration { color: #d81b60; font-weight: 600; }
+.cm-kw-logic { color: #e67e22; font-weight: 600; }
+.cm-kw-statement { color: #16a085; font-weight: 600; }
+
+.cm-func-call { color: #0056b3; font-weight: 500; }
+.cm-object-access { color: #2c3e50; font-weight: 500; }
+.cm-bangla-number { color: #27ae60; font-weight: 600; }
+.cm-variable-custom { color: #2c3e50; }
+
+/* ================= FOOTER (UNDERLINE REMOVED & COLOR INHERIT) ================= */
+footer {
+  background: #1a2e22;
+  color: #cbd5e1;
+  padding: 22px 20px;
+  text-align: center;
+  margin-top: 40px;
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.footer-links a:hover {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.developer-info {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ================= RESPONSIVE VIEWPORT ================= */
+@media (max-width: 850px) {
+  .workspace { grid-template-columns: 1fr; }
+  #output { height: 400px !important; max-height: 400px !important; }
+  button { font-size: 12px; padding: 12px 10px; gap: 4px; }
+  header { text-align: center; }
+}
