@@ -1263,14 +1263,14 @@ function toggleAutoPlay() {
       if (!stepState || stepState.finished) { stopAutoPlay(); return; }
       stepNext();
     }, 800);
-    if (autoBtn) autoBtn.innerText = "⏸ থামুন";
+    if (autoBtn) autoBtn.innerText = "⏸ থামো";
   }
 }
 
 function stopAutoPlay() {
   if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
   const autoBtn = document.getElementById("stepAutoBtn");
-  if (autoBtn) autoBtn.innerText = "⏩ অটো প্লে";
+  if (autoBtn) autoBtn.innerText = "⏩‌ প্লে করো";
 }
 
 // ================== RUN (সাধারণ, ইন্সট্যান্ট রান বাটন) ==================
