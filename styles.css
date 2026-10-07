@@ -25,6 +25,10 @@ header {
   gap: 4px;
 }
 
+header a {
+  text-decoration: none;
+}
+
 .logo-container h1 {
   margin: 0;
   font-size: 24px;
@@ -58,11 +62,13 @@ header {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
+/* minmax(0, 1fr) stops long code lines from stretching the columns */
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
 }
@@ -76,6 +82,8 @@ header {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;        /* allows the panel to shrink instead of growing with content */
+  overflow: hidden;
 }
 
 .section-title {
@@ -162,34 +170,109 @@ button:disabled {
 .btn-step-reset { background: #64748b; color: white; }
 .btn-step-reset:hover:not(:disabled) { background: #475569; }
 
-/* ================= CODE EDITOR CONTAINER ================= */
+/* ================= CODE EDITOR: FIXED SIZE + HORIZONTAL SCROLL ================= */
+/* The wrapper has a fixed height and never grows or shrinks */
 #editor {
+  width: 100%;
+  height: 320px;
+  min-height: 320px;
+  max-height: 320px;
+  flex: 0 0 320px;
   margin-bottom: 15px;
   border-radius: 6px;
   border: 1px solid #b2d2e8;
   overflow: hidden;
+  position: relative;
 }
 
+/* CodeMirror fills the wrapper exactly */
+#editor .CodeMirror,
 .CodeMirror {
+  width: 100% !important;
+  height: 100% !important;
   background: #f2f7fc !important;
   color: #2c3e50 !important;
-  height: 320px;
   font-size: 15px;
   font-family: 'Fira Code', 'Courier New', monospace;
+  line-height: 1.5;
+}
+
+/* The scroll area: vertical + horizontal scrollbars appear when needed */
+.CodeMirror-scroll {
+  overflow: auto !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Never wrap long lines: keep them on one line and scroll sideways */
+.CodeMirror-lines,
+.CodeMirror pre,
+.CodeMirror pre.CodeMirror-line,
+.CodeMirror pre.CodeMirror-line-like {
+  white-space: pre !important;
+  word-wrap: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.CodeMirror-wrap pre,
+.CodeMirror-wrap pre.CodeMirror-line,
+.CodeMirror-wrap pre.CodeMirror-line-like {
+  white-space: pre !important;
+  word-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.CodeMirror-gutters {
+  background: #e6eef7 !important;
+  border-right: 1px solid #c9d9e8 !important;
+}
+
+.CodeMirror-linenumber {
+  color: #7f8c8d;
 }
 
 .CodeMirror-cursor {
   border-left: 2px solid #2980b9 !important;
 }
 
-.CodeMirror-lines {
-  white-space: pre !important;
-}
-
-/* বর্তমানে এক্সিকিউট হচ্ছে এমন লাইন হাইলাইট (স্টেপ মোড ইন্ডিকেটর) */
+/* Currently-executing line highlight (step mode indicator) */
 .CodeMirror .step-current-line {
   background: #fef08a !important;
   box-shadow: inset 4px 0 0 0 #ca8a04;
+}
+
+/* Editor scrollbars */
+.CodeMirror-hscrollbar,
+.CodeMirror-vscrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+}
+
+.CodeMirror-scroll::-webkit-scrollbar,
+.CodeMirror-hscrollbar::-webkit-scrollbar,
+.CodeMirror-vscrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.CodeMirror-scroll::-webkit-scrollbar-track,
+.CodeMirror-hscrollbar::-webkit-scrollbar-track,
+.CodeMirror-vscrollbar::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+
+.CodeMirror-scroll::-webkit-scrollbar-thumb,
+.CodeMirror-hscrollbar::-webkit-scrollbar-thumb,
+.CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 6px;
+}
+
+.CodeMirror-scroll::-webkit-scrollbar-thumb:hover,
+.CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover,
+.CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* ================= CONSOLE VIEWPORT ================= */
@@ -201,19 +284,24 @@ button:disabled {
   font-family: 'Fira Code', monospace;
   font-size: 13px;
   height: 140px;
+  min-height: 140px;
+  max-height: 140px;
   margin: 0;
+  overflow-x: auto;
   overflow-y: auto;
+  white-space: pre;      /* keep lines intact, scroll horizontally */
   border: 1px solid #374151;
   width: 100%;
+  flex-shrink: 0;
 }
 
 /* ================= STRICT FIXED FLOWCHART AREA WITH AUTO OVERFLOW ================= */
 #output {
   width: 100% !important;
-  height: 520px !important;    /* একদম ফিক্সড হাইট */
+  height: 520px !important;
   max-height: 520px !important;
-  overflow-x: auto !important;  /* হরিজন্টাল স্ক্রোল ফোর্স */
-  overflow-y: auto !important;  /* ভার্টিকাল স্ক্রোল ফোর্স */
+  overflow-x: auto !important;
+  overflow-y: auto !important;
   border: 1px solid #b7e4c7;
   background: #eef7f2;
   border-radius: 6px;
@@ -221,11 +309,10 @@ button:disabled {
   margin-bottom: 15px;
   position: relative !important;
   display: block !important;
-  contain: size layout style;  /* লেআউট ইঞ্জিনকে বাউন্ডারির বাইরে যেতে বাধা দেবে */
+  contain: size layout style;
   -webkit-overflow-scrolling: touch;
 }
 
-/* SVG স্ক্রোল ফ্রেন্ডলি করার জন্য কাস্টম কনফিগারেশন */
 #output svg {
   display: inline-block !important;
   margin: 0 !important;
@@ -247,7 +334,7 @@ button:disabled {
 .cm-bangla-number { color: #27ae60; font-weight: 600; }
 .cm-variable-custom { color: #2c3e50; }
 
-/* ================= FOOTER (UNDERLINE REMOVED & COLOR INHERIT) ================= */
+/* ================= FOOTER ================= */
 footer {
   background: #1a2e22;
   color: #cbd5e1;
@@ -285,7 +372,15 @@ footer {
 
 /* ================= RESPONSIVE VIEWPORT ================= */
 @media (max-width: 850px) {
-  .workspace { grid-template-columns: 1fr; }
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+
+  #editor {
+    height: 280px;
+    min-height: 280px;
+    max-height: 280px;
+    flex: 0 0 280px;
+  }
+
   #output { height: 400px !important; max-height: 400px !important; }
   button { font-size: 12px; padding: 12px 10px; gap: 4px; }
   header { text-align: center; }
