@@ -1,22 +1,10 @@
 /**
  * Developer: Md. Anisur Rahman
- * + স্টেপ বাই স্টেপ (লাইন বাই লাইন) কোড ও ফ্লোচার্ট এক্সিকিউশন ইঞ্জিন যোগ করা হয়েছে
  */
 
 let editor;
 let currentLoopUpdate = null;
 let currentFunctionName = null;
-
-// ================== STEP ENGINE STATE ==================
-let astNodeToFlowId = new Map();   // AST node  -> flowchart node id (built fresh every buildFlow() call)
-let lastNodesById = {};            // flowchart node id -> raw "id=>type: text" line (no flowstate suffix)
-let lastEdges = [];                // flowchart edge lines
-let stepState = null;              // { generator, finished }
-let visitedFlowIds = new Set();    // ids that have already been "passed through" (rendered as |past)
-let currentHighlightLine = null;   // currently highlighted CodeMirror line number
-let autoPlayInterval = null;
-let lastTransformedCode = "";      // the banglaToJS() output actually parsed for the current step-run
-
 // ================== INIT ==================
 window.onload = function () {
   editor = CodeMirror(document.getElementById("editor"), {
@@ -37,16 +25,6 @@ window.onload = function () {
   দেখাও(ক);
 }`
   });
-
-  const nextBtn = document.getElementById("stepNextBtn");
-  const autoBtn = document.getElementById("stepAutoBtn");
-  const startBtn = document.getElementById("stepStartBtn");
-  const resetBtn = document.getElementById("stepResetBtn");
-  if (startBtn) startBtn.addEventListener("click", startStepMode);
-  if (nextBtn) nextBtn.addEventListener("click", stepNext);
-  if (autoBtn) autoBtn.addEventListener("click", toggleAutoPlay);
-  if (resetBtn) resetBtn.addEventListener("click", resetStepMode);
-  setStepControlsEnabled(false);
 };
 
 // ================== BANGLA COMPILER ==================
@@ -94,84 +72,57 @@ function banglaToJS(code){
     .replace(/রাখো/g,"push")
     .replace(/সরাও/g,"pop")
     .replace(/অংশ/g,"slice")
-    .replace(/বড়হাতেরঅক্ষর/g,"toUpperCase")
+    .replace(/বড়হাতেরঅক্ষর/g,"toUpperCase")
     .replace(/ছোটহাতেরঅক্ষর/g,"toLowerCase")
     .replace (/উপস্ট্রিং/g, "substr");
-
+     
 }
 
-// ================== SHARED FLOWCHART RENDER OPTIONS ==================
-function getFlowchartOptions() {
-  const isMobile = window.innerWidth <= 600;
-  return {
-    'line-width': 2,
-    'line-length': isMobile ? 35 : 50,
-    'text-margin': 10,
-    'font-size': isMobile ? 13 : 14,
-    'font-family': 'Inter',
-    'yes-text': 'হ্যাঁ',
-    'no-text': 'না',
-    'scale': isMobile ? 0.85 : 1,
-    'symbols': {
-      'start': { 'fill': '#6aa84f', 'font-color':'#fff' },
-      'end': { 'fill': '#e06666', 'font-color':'#fff' },
-      'operation': { 'fill': '#f6b26b', 'font-color':'#000' },
-      'condition': { 'fill': '#3d85c6', 'font-color':'#fff' },
-      'inputoutput': { 'fill': '#ffd966', 'font-color':'#000' },
-      'subroutine': { 'fill': '#8e7cc3', 'font-color':'#fff' }
-    },
-    // এখানেই লাইভ-এক্সিকিউশন হাইলাইট কালার সংজ্ঞায়িত করা হচ্ছে
-    'flowstate': {
-      'current': { 'fill': '#facc15', 'font-color': '#111827', 'font-weight': 'bold', 'element-color': '#b45309' },
-      'past':    { 'fill': '#cbd5e1', 'font-color': '#334155', 'element-color': '#94a3b8' }
-    }
-  };
-}
-
-// ================== FLOWCHART (স্ট্যাটিক জেনারেশন) ==================
+// ================== FLOWCHART ==================
 function generateFlowchart() {
   const bnCode = editor.getValue();
   const code = banglaToJS(bnCode);
+  let isFlowchartGenerated = false;
 
   const output = document.getElementById("output");
-  output.innerHTML = "";
+  output.innerHTML = ""; 
 
   try {
     const ast = esprima.parseScript(code, { range: true });
-    const flowCode = buildFlow(ast); // এই কলেই astNodeToFlowId / lastNodesById / lastEdges রিফ্রেশ হয়
+    const flowCode = buildFlow(ast);
     const diagram = flowchart.parse(flowCode);
+    
+    const isMobile = window.innerWidth <= 600;
 
-    diagram.drawSVG(output, getFlowchartOptions());
+    diagram.drawSVG(output, {
+      'line-width': 2,
+      'line-length': isMobile ? 35 : 50,
+      'text-margin': 10,
+      'font-size': isMobile ? 13 : 14,
+      'font-family': 'Inter',
+      'yes-text': 'হ্যাঁ',
+      'no-text': 'না',
+      'scale': isMobile ? 0.85 : 1,
+      'symbols': {
+        'start': { 'fill': '#6aa84f', 'font-color':'#fff' },
+        'end': { 'fill': '#e06666', 'font-color':'#fff' },
+        'operation': { 'fill': '#f6b26b', 'font-color':'#000' },
+        'condition': { 'fill': '#3d85c6', 'font-color':'#fff' },
+        'inputoutput': { 'fill': '#ffd966', 'font-color':'#000' },
+        'subroutine': { 'fill': '#8e7cc3', 'font-color':'#fff' }
+      }
+    });
 
   } catch (err) {
     output.innerHTML = `<p style="color:red">${err.message}</p>`;
   }
 }
 
-// ================== ফ্লোচার্ট রি-রেন্ডার (হাইলাইট সহ, স্টেপ মোডে ব্যবহৃত) ==================
-function renderFlowchartState(currentId) {
-  const output = document.getElementById("output");
-  const nodeLines = Object.entries(lastNodesById).map(([id, line]) => {
-    if (id === currentId) return line + "|current";
-    if (visitedFlowIds.has(id)) return line + "|past";
-    return line;
-  });
-  const flowSource = nodeLines.join("\n") + "\n" + lastEdges.join("\n");
-
-  try {
-    output.innerHTML = "";
-    const diagram = flowchart.parse(flowSource);
-    diagram.drawSVG(output, getFlowchartOptions());
-  } catch (e) {
-    // silently ignore render hiccups mid-step so stepping never gets stuck
-    console.error("flowchart render error:", e);
-  }
-}
 
 // ================== DOWNLOAD FLOWCHART ==================
 function downloadImage() {
   const svg = document.querySelector("#output svg");
-  if (!svg) { alert("দয়া করে প্রথমে ফ্লোচার্ট তৈরি করুন, তারপর ডাউনলোড করুন!"); return; }
+  if (!svg) { alert("দয়া করে প্রথমে ফ্লোচার্ট তৈরি করুন, তারপর ডাউনলোড করুন!"); return; }
 
   const svgData = new XMLSerializer().serializeToString(svg);
   const canvas = document.createElement("canvas");
@@ -179,11 +130,11 @@ function downloadImage() {
   const img = new Image();
 
   const svgSize = svg.getBoundingClientRect();
-  canvas.width = svgSize.width * 2;
+  canvas.width = svgSize.width * 2; 
   canvas.height = svgSize.height * 2;
 
   img.onload = function () {
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "white"; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     const pngUrl = canvas.toDataURL("image/png");
@@ -195,11 +146,8 @@ function downloadImage() {
   img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
 }
 
-// ================== AST WALK (ফ্লোচার্ট বিল্ডার) ==================
+// ================== AST WALK ==================
 function buildFlow(ast) {
-
-  // প্রতিটি নতুন buildFlow() কলে ম্যাপ রিসেট হয়, যাতে পুরনো AST-এর রেফারেন্স জমে না থাকে
-  astNodeToFlowId = new Map();
 
   let nodes = ["st=>start: শুরু|start"];
   let edges = [];
@@ -226,7 +174,6 @@ function buildFlow(ast) {
         }).join(", ");
         nodes.push(`${vId}=>operation: ${vText}`);
         edges.push(`${prev}->${vId}`);
-        astNodeToFlowId.set(node, vId);
         return vId;
       }
 
@@ -234,7 +181,6 @@ function buildFlow(ast) {
         const dId = newId("dec");
         nodes.push(`${dId}=>condition: যদি (${getTextBN(node.test)})`);
         edges.push(`${prev}->${dId}`);
-        astNodeToFlowId.set(node, dId);
 
         const yesEnd = walk(node.consequent, dId + "(yes)");
         const noEnd = node.alternate ? walk(node.alternate, dId + "(no)") : dId + "(no)";
@@ -251,7 +197,6 @@ function buildFlow(ast) {
         const wId = newId("while");
         nodes.push(`${wId}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
         edges.push(`${prev}->${wId}`);
-        astNodeToFlowId.set(node, wId);
         const wEnd = walk(node.body, wId + "(yes)");
         edges.push(`${wEnd}(left)->${wId}`);
         return wId + "(no)";
@@ -266,7 +211,6 @@ function buildFlow(ast) {
         nodes.push(`${dCond}=>condition: যতক্ষণ (${getTextBN(node.test)})`);
         edges.push(`${dEnd}->${dCond}`);
         edges.push(`${dCond}(yes)->${dStart}`);
-        astNodeToFlowId.set(node, dCond);
         return dCond+"(no)";
       }
 
@@ -277,7 +221,6 @@ function buildFlow(ast) {
         const condText = node.test ? getTextBN(node.test) : "true";
         nodes.push(`${fCond}=>condition: লুপ (${condText})`);
         edges.push(`${fInit}->${fCond}`);
-        astNodeToFlowId.set(node, fCond);
 
         const prevUpdate = currentLoopUpdate;
         const fUpdate = newId("upd");
@@ -298,7 +241,6 @@ function buildFlow(ast) {
         const foId = newId("fo");
         nodes.push(`${foId}=>condition: প্রতিটি (${getTextBN(node.right)})`);
         edges.push(`${prev}->${foId}`);
-        astNodeToFlowId.set(node, foId);
         const foEnd = walk(node.body, foId+"(yes)");
         edges.push(`${foEnd}(left)->${foId}`);
         return foId+"(no)";
@@ -308,7 +250,6 @@ function buildFlow(ast) {
         const fiId = newId("fi");
         nodes.push(`${fiId}=>condition: প্রতিটি_ইন (${getTextBN(node.right)})`);
         edges.push(`${prev}->${fiId}`);
-        astNodeToFlowId.set(node, fiId);
         const fiEnd = walk(node.body, fiId+"(yes)");
         edges.push(`${fiEnd}(left)->${fiId}`);
         return fiId+"(no)";
@@ -318,7 +259,6 @@ function buildFlow(ast) {
         const sId = newId("switch");
         nodes.push(`${sId}=>condition: সুইচ (${getTextBN(node.discriminant)})`);
         edges.push(`${prev}->${sId}`);
-        astNodeToFlowId.set(node, sId);
         let afterSwitch = newId("merge");
         nodes.push(`${afterSwitch}=>operation: পরবর্তী`);
         let lastCaseEnd = null;
@@ -338,14 +278,13 @@ function buildFlow(ast) {
         if(lastCaseEnd) edges.push(`${lastCaseEnd}(no)->${afterSwitch}`);
         return afterSwitch;
       }
-
-
+  
+    
     case "FunctionDeclaration": {
     const funcId = newId("func");
     const params = node.params.map(p => getTextBN(p)).join(", ");
     nodes.push(`${funcId}=>subroutine: ফাংশন: ${node.id.name}(${params})`);
     edges.push(`${prev}->${funcId}`);
-    astNodeToFlowId.set(node, funcId);
 
     // Set current function name for recursive detection
     const prevFunctionName = currentFunctionName;
@@ -357,7 +296,7 @@ function buildFlow(ast) {
     currentFunctionName = prevFunctionName;
     return endId;
 }
-
+     
     case "ReturnStatement": {
     const arg = node.argument;
     const rId = newId("ret");
@@ -433,16 +372,14 @@ function buildFlow(ast) {
     }
 
     edges.push(`${prev}->${rId}`);
-    astNodeToFlowId.set(node, rId);
     return rId;
 }
-
+        
 
       case "BreakStatement": {
         const bId = newId("brk");
         nodes.push(`${bId}=>operation: থামো`);
         edges.push(`${prev}->${bId}`);
-        astNodeToFlowId.set(node, bId);
         return bId;
       }
 
@@ -450,7 +387,6 @@ function buildFlow(ast) {
         const cId = newId("cont");
         nodes.push(`${cId}=>operation: বাদ`);
         edges.push(`${prev}->${cId}`);
-        astNodeToFlowId.set(node, cId);
         if(currentLoopUpdate){
           edges.push(`${cId}->${currentLoopUpdate}`);
         }
@@ -461,7 +397,6 @@ function buildFlow(ast) {
         const tStart = newId("try");
         nodes.push(`${tStart}=>operation: চেষ্টা`);
         edges.push(`${prev}->${tStart}`);
-        astNodeToFlowId.set(node, tStart);
         const tEnd = walk(node.block, tStart);
         if(node.handler){
           const cId2 = newId("catch");
@@ -481,11 +416,10 @@ function buildFlow(ast) {
         const thId = newId("throw");
         nodes.push(`${thId}=>operation: ছোড়ো ${getTextBN(node.argument)}`);
         edges.push(`${prev}->${thId}`);
-        astNodeToFlowId.set(node, thId);
         return thId;
       }
 
-
+        
    case "ExpressionStatement": {
     const expr = node.expression;
 
@@ -494,7 +428,7 @@ function buildFlow(ast) {
         .replace(".push",".রাখো")
         .replace(".pop",".সরাও")
         .replace(".slice",".অংশ")
-        .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
+        .replace(".toUpperCase",".বড়হাতেরঅক্ষর")
         .replace(".toLowerCase",".ছোটহাতেরঅক্ষর")
         .replace(".substr",".উপস্ট্রিং")
         .replace(".length",".দৈর্ঘ্য");
@@ -522,7 +456,6 @@ function buildFlow(ast) {
                 const ioId = newId("out");
                 nodes.push(`${ioId}=>inputoutput: দেখাও(${innerTxt})`);
                 edges.push(`${opId}->${ioId}`);
-                astNodeToFlowId.set(node, ioId);
                 return ioId;
             }
 
@@ -534,7 +467,6 @@ function buildFlow(ast) {
 
             nodes.push(`${ioId}=>inputoutput: ${txt}`);
             edges.push(`${prev}->${ioId}`);
-            astNodeToFlowId.set(node, ioId);
             return ioId;
         }
 
@@ -547,7 +479,6 @@ function buildFlow(ast) {
 
             nodes.push(`${ioId}=>inputoutput: ${txt}`);
             edges.push(`${prev}->${ioId}`);
-            astNodeToFlowId.set(node, ioId);
             return ioId;
         }
 
@@ -557,7 +488,6 @@ function buildFlow(ast) {
 
         nodes.push(`${opId}=>operation: ${txt}`);
         edges.push(`${prev}->${opId}`);
-        astNodeToFlowId.set(node, opId);
         return opId;
     }
 
@@ -569,7 +499,6 @@ function buildFlow(ast) {
 
         nodes.push(`${opId}=>operation: ${txt}`);
         edges.push(`${prev}->${opId}`);
-        astNodeToFlowId.set(node, opId);
         return opId;
     }
 
@@ -580,7 +509,6 @@ function buildFlow(ast) {
 
         nodes.push(`${opId}=>operation: ${txt}`);
         edges.push(`${prev}->${opId}`);
-        astNodeToFlowId.set(node, opId);
         return opId;
     }
 
@@ -590,10 +518,9 @@ function buildFlow(ast) {
 
     nodes.push(`${eId}=>operation: ${txt}`);
     edges.push(`${prev}->${eId}`);
-    astNodeToFlowId.set(node, eId);
     return eId;
 }
-
+        
      default:
         return prev;
     }
@@ -602,15 +529,6 @@ function buildFlow(ast) {
   const final = walk(ast,"st");
   nodes.push("e=>end: শেষ");
   edges.push(`${final}->e`);
-
-  // স্টেপ-এক্সিকিউশন মোডের জন্য id -> raw node text ম্যাপ সংরক্ষণ করা হচ্ছে
-  lastNodesById = {};
-  nodes.forEach(line => {
-    const m = line.match(/^(\w+)=>/);
-    if (m) lastNodesById[m[1]] = line;
-  });
-  lastEdges = edges.slice();
-
   return nodes.join("\n")+"\n"+edges.join("\n");
 }
 
@@ -666,7 +584,7 @@ function getTextBN(node){
     return `${key}: ${value}`;
   }).join(", ")} }`;
 
-
+    
     case "MemberExpression":
     if(node.computed){
         return `${getTextBN(node.object)}[${getTextBN(node.property)}]`;
@@ -684,855 +602,9 @@ function getTextBN(node){
   }
 }
 
-// ==================================================================
-// ================  STEP-BY-STEP EXECUTION ENGINE  ================
-// ==================================================================
-// একটা ছোট tree-walking interpreter, যেটা esprima-এর AST-এর উপর দিয়ে
-// generator ব্যবহার করে statement-by-statement থামে (yield করে), যাতে
-// প্রতিটি "পরবর্তী ধাপ" ক্লিকে ঠিক একটা লাইন/একটা ফ্লোচার্ট নোড এক্সিকিউট হয়।
 
-class BreakSignal {}
-class ContinueSignal {}
-class ReturnSignal { constructor(value) { this.value = value; } }
 
-class Scope {
-  constructor(parent) {
-    this.vars = new Map();
-    this.parent = parent || null;
-  }
-  declare(name, value) { this.vars.set(name, value); }
-  has(name) {
-    if (this.vars.has(name)) return true;
-    return this.parent ? this.parent.has(name) : false;
-  }
-  get(name) {
-    if (this.vars.has(name)) return this.vars.get(name);
-    if (this.parent) return this.parent.get(name);
-    throw new Error(`ভেরিয়েবল '${name}' পাওয়া যায়নি`);
-  }
-  set(name, value) {
-    if (this.vars.has(name)) { this.vars.set(name, value); return; }
-    if (this.parent && this.parent.has(name)) { this.parent.set(name, value); return; }
-    // ঘোষণা না করেই ব্যবহার করলে গ্লোবালে বসাও (সাধারণ JS আচরণের মতো)
-    this.vars.set(name, value);
-  }
-}
-
-function createRootScope() {
-  const root = new Scope(null);
-  root.declare("Math", Math);
-  root.declare("console", console);
-  root.declare("JSON", JSON);
-  root.declare("Array", Array);
-  root.declare("Object", Object);
-  root.declare("String", String);
-  root.declare("Number", Number);
-  root.declare("Boolean", Boolean);
-  root.declare("Date", Date);
-  root.declare("undefined", undefined);
-  root.declare("NaN", NaN);
-  root.declare("Infinity", Infinity);
-  return root;
-}
-
-function applyBinary(op, l, r) {
-  switch(op) {
-    case "+": return l + r;
-    case "-": return l - r;
-    case "*": return l * r;
-    case "/": return l / r;
-    case "%": return l % r;
-    case "**": return l ** r;
-    case "==": return l == r;
-    case "===": return l === r;
-    case "!=": return l != r;
-    case "!==": return l !== r;
-    case "<": return l < r;
-    case "<=": return l <= r;
-    case ">": return l > r;
-    case ">=": return l >= r;
-    case "&": return l & r;
-    case "|": return l | r;
-    case "^": return l ^ r;
-    case "<<": return l << r;
-    case ">>": return l >> r;
-    case ">>>": return l >>> r;
-    default: throw new Error("অজানা অপারেটর: " + op);
-  }
-}
-
-function convertToBanglaOutput(value) {
-  if (typeof value === "number") return enNumberToBn(value);
-  if (typeof value === "boolean") return value ? "সত্য" : "মিথ্যা";
-  if (value === null) return "নাল";
-  if (value === undefined) return "আনডিফাইন্ড";
-  if (Array.isArray(value)) return "[" + value.map(convertToBanglaOutput).join(", ") + "]";
-  if (typeof value === "object") {
-    return "{ " + Object.entries(value).map(([k, v]) => `${k}: ${convertToBanglaOutput(v)}`).join(", ") + " }";
-  }
-  return enNumberToBn(value);
-}
-
-function appendConsoleOutput(args) {
-  const consoleEl = document.getElementById("console");
-  if (!consoleEl) return;
-  consoleEl.innerText += args.map(convertToBanglaOutput).join(" ") + "\n";
-  consoleEl.scrollTop = consoleEl.scrollHeight;
-}
-
-function makeUserFunction(node, closureScope) {
-  return { __isUserFunction__: true, node, closureScope };
-}
-
-// রিকার্সিভ/নেস্টেড ফাংশন কলকে "স্টেপ ওভার" করা হয় — অর্থাৎ পুরো ফাংশন বডি
-// এক ধাপেই সম্পূর্ণ চালিয়ে রিটার্ন ভ্যালু বের করে আনা হয় (ভিতরের প্রতিটি লাইন
-// আলাদাভাবে হাইলাইট হয় না, কিন্তু ফলাফল ঠিকই থাকে)।
-function callUserFunction(fn, args) {
-  const fnScope = new Scope(fn.closureScope);
-  fn.node.params.forEach((p, i) => fnScope.declare(p.name, args[i]));
-  const gen = execBlockArray(fn.node.body.body, fnScope);
-  try {
-    let res = gen.next();
-    while (!res.done) res = gen.next();
-  } catch (e) {
-    if (e instanceof ReturnSignal) return e.value;
-    throw e;
-  }
-  return undefined;
-}
-
-function bindForTarget(target, value, scope) {
-  if (target.type === "VariableDeclaration") {
-    scope.declare(target.declarations[0].id.name, value);
-  } else if (target.type === "Identifier") {
-    scope.set(target.name, value);
-  }
-}
-
-function assignTo(node, value, scope) {
-  if (node.type === "Identifier") {
-    scope.set(node.name, value);
-  } else if (node.type === "MemberExpression") {
-    const obj = evalExpr(node.object, scope);
-    const key = node.computed ? evalExpr(node.property, scope) : node.property.name;
-    obj[key] = value;
-  } else {
-    throw new Error("অসমর্থিত অ্যাসাইনমেন্ট টার্গেট: " + node.type);
-  }
-}
-
-function evalCall(node, scope) {
-  const callee = node.callee;
-  const args = node.arguments.map(a => evalExpr(a, scope));
-
-  if (callee.type === "MemberExpression") {
-    const obj = evalExpr(callee.object, scope);
-    const methodName = callee.computed ? evalExpr(callee.property, scope) : callee.property.name;
-
-    if (obj === console && methodName === "log") {
-      appendConsoleOutput(args);
-      return undefined;
-    }
-    if (obj === undefined || obj === null) {
-      throw new Error(`'${methodName}' মেথডটি খালি (null/undefined) ভ্যালুর উপর কল করা হয়েছে`);
-    }
-    if (typeof obj[methodName] === "function") {
-      return obj[methodName].apply(obj, args);
-    }
-    throw new Error(`মেথড '${methodName}' পাওয়া যায়নি`);
-  }
-
-  if (callee.type === "Identifier") {
-    if (callee.name === "prompt") return window.prompt(args[0] !== undefined ? String(args[0]) : "");
-    if (callee.name === "isNaN") return isNaN(args[0]);
-    if (callee.name === "parseInt") return parseInt(args[0], args[1]);
-    if (callee.name === "parseFloat") return parseFloat(args[0]);
-
-    const fn = scope.get(callee.name);
-    if (fn && fn.__isUserFunction__) return callUserFunction(fn, args);
-    if (typeof fn === "function") return fn(...args);
-    throw new Error(`ফাংশন '${callee.name}' পাওয়া যায়নি`);
-  }
-  throw new Error("অসমর্থিত ফাংশন কল");
-}
-
-function evalExpr(node, scope) {
-  if (!node) return undefined;
-  switch (node.type) {
-    case "Literal": return node.value;
-    case "Identifier": return scope.get(node.name);
-
-    case "ArrayExpression":
-      return node.elements.map(e => e ? evalExpr(e, scope) : undefined);
-
-    case "ObjectExpression": {
-      const obj = {};
-      for (const p of node.properties) {
-        const key = p.key.type === "Identifier" ? p.key.name : p.key.value;
-        obj[key] = evalExpr(p.value, scope);
-      }
-      return obj;
-    }
-
-    case "BinaryExpression":
-      return applyBinary(node.operator, evalExpr(node.left, scope), evalExpr(node.right, scope));
-
-    case "LogicalExpression": {
-      const l = evalExpr(node.left, scope);
-      if (node.operator === "&&") return l ? evalExpr(node.right, scope) : l;
-      if (node.operator === "||") return l ? l : evalExpr(node.right, scope);
-      if (node.operator === "??") return (l !== null && l !== undefined) ? l : evalExpr(node.right, scope);
-      throw new Error("অজানা লজিক্যাল অপারেটর: " + node.operator);
-    }
-
-    case "UnaryExpression": {
-      if (node.operator === "typeof" && node.argument.type === "Identifier" && !scope.has(node.argument.name)) {
-        return "undefined";
-      }
-      const arg = evalExpr(node.argument, scope);
-      switch (node.operator) {
-        case "-": return -arg;
-        case "+": return +arg;
-        case "!": return !arg;
-        case "~": return ~arg;
-        case "typeof": return typeof arg;
-        case "void": return undefined;
-        default: throw new Error("অজানা ইউনারি অপারেটর: " + node.operator);
-      }
-    }
-
-    case "UpdateExpression": {
-      const oldVal = evalExpr(node.argument, scope);
-      const newVal = node.operator === "++" ? oldVal + 1 : oldVal - 1;
-      assignTo(node.argument, newVal, scope);
-      return node.prefix ? newVal : oldVal;
-    }
-
-    case "AssignmentExpression": {
-      let newVal;
-      if (node.operator === "=") {
-        newVal = evalExpr(node.right, scope);
-      } else {
-        const oldVal = evalExpr(node.left, scope);
-        const rVal = evalExpr(node.right, scope);
-        newVal = applyBinary(node.operator.slice(0, -1), oldVal, rVal);
-      }
-      assignTo(node.left, newVal, scope);
-      return newVal;
-    }
-
-    case "ConditionalExpression":
-      return evalExpr(node.test, scope) ? evalExpr(node.consequent, scope) : evalExpr(node.alternate, scope);
-
-    case "SequenceExpression": {
-      let result;
-      for (const e of node.expressions) result = evalExpr(e, scope);
-      return result;
-    }
-
-    case "MemberExpression": {
-      const obj = evalExpr(node.object, scope);
-      const key = node.computed ? evalExpr(node.property, scope) : node.property.name;
-      return (obj === null || obj === undefined) ? undefined : obj[key];
-    }
-
-    case "CallExpression":
-      return evalCall(node, scope);
-
-    default:
-      throw new Error("এই এক্সপ্রেশনটি সমর্থিত নয়: " + node.type);
-  }
-}
-
-function* execBlockArray(bodyArr, scope) {
-  for (const stmt of bodyArr) {
-    yield* execStatement(stmt, scope);
-  }
-}
-
-function* execBody(node, scope) {
-  if (!node) return;
-  if (node.type === "BlockStatement") {
-    yield* execBlockArray(node.body, scope);
-  } else {
-    yield* execStatement(node, scope);
-  }
-}
-
-function* execStatement(node, scope) {
-  if (!node) return;
-
-  // প্রতিটি স্টেটমেন্টের ঠিক আগে থামো — UI এখানে লাইন/নোড হাইলাইট করবে
-  yield { node, scope };
-
-  switch (node.type) {
-
-    case "VariableDeclaration": {
-      for (const d of node.declarations) {
-        const val = d.init ? evalExpr(d.init, scope) : undefined;
-        scope.declare(d.id.name, val);
-      }
-      break;
-    }
-
-    case "ExpressionStatement": {
-      evalExpr(node.expression, scope);
-      break;
-    }
-
-    case "IfStatement": {
-      if (evalExpr(node.test, scope)) {
-        yield* execBody(node.consequent, scope);
-      } else if (node.alternate) {
-        yield* execBody(node.alternate, scope);
-      }
-      break;
-    }
-
-    case "WhileStatement": {
-      while (evalExpr(node.test, scope)) {
-        try {
-          yield* execBody(node.body, scope);
-        } catch (e) {
-          if (e instanceof BreakSignal) break;
-          if (e instanceof ContinueSignal) continue;
-          throw e;
-        }
-      }
-      break;
-    }
-
-    case "DoWhileStatement": {
-      do {
-        try {
-          yield* execBody(node.body, scope);
-        } catch (e) {
-          if (e instanceof BreakSignal) break;
-          if (e instanceof ContinueSignal) continue;
-          throw e;
-        }
-      } while (evalExpr(node.test, scope));
-      break;
-    }
-
-    case "ForStatement": {
-      const forScope = new Scope(scope);
-      if (node.init) {
-        if (node.init.type === "VariableDeclaration") {
-          for (const d of node.init.declarations) {
-            forScope.declare(d.id.name, d.init ? evalExpr(d.init, forScope) : undefined);
-          }
-        } else {
-          evalExpr(node.init, forScope);
-        }
-      }
-      while (!node.test || evalExpr(node.test, forScope)) {
-        try {
-          yield* execBody(node.body, forScope);
-        } catch (e) {
-          if (e instanceof BreakSignal) break;
-          if (!(e instanceof ContinueSignal)) throw e;
-        }
-        if (node.update) evalExpr(node.update, forScope);
-      }
-      break;
-    }
-
-    case "ForOfStatement": {
-      const iterable = evalExpr(node.right, scope);
-      for (const item of iterable) {
-        const loopScope = new Scope(scope);
-        bindForTarget(node.left, item, loopScope);
-        try {
-          yield* execBody(node.body, loopScope);
-        } catch (e) {
-          if (e instanceof BreakSignal) break;
-          if (e instanceof ContinueSignal) continue;
-          throw e;
-        }
-      }
-      break;
-    }
-
-    case "ForInStatement": {
-      const obj = evalExpr(node.right, scope);
-      for (const key in obj) {
-        const loopScope = new Scope(scope);
-        bindForTarget(node.left, key, loopScope);
-        try {
-          yield* execBody(node.body, loopScope);
-        } catch (e) {
-          if (e instanceof BreakSignal) break;
-          if (e instanceof ContinueSignal) continue;
-          throw e;
-        }
-      }
-      break;
-    }
-
-    case "SwitchStatement": {
-      const disc = evalExpr(node.discriminant, scope);
-      const switchScope = new Scope(scope);
-      let matchIndex = node.cases.findIndex(c => c.test !== null && evalExpr(c.test, switchScope) === disc);
-      if (matchIndex === -1) matchIndex = node.cases.findIndex(c => c.test === null);
-      try {
-        if (matchIndex !== -1) {
-          for (let i = matchIndex; i < node.cases.length; i++) {
-            for (const stmt of node.cases[i].consequent) {
-              yield* execStatement(stmt, switchScope);
-            }
-          }
-        }
-      } catch (e) {
-        if (!(e instanceof BreakSignal)) throw e;
-      }
-      break;
-    }
-
-    case "FunctionDeclaration": {
-      scope.declare(node.id.name, makeUserFunction(node, scope));
-      break;
-    }
-
-    case "ReturnStatement": {
-      const val = node.argument ? evalExpr(node.argument, scope) : undefined;
-      throw new ReturnSignal(val);
-    }
-
-    case "BreakStatement":
-      throw new BreakSignal();
-
-    case "ContinueStatement":
-      throw new ContinueSignal();
-
-    case "TryStatement": {
-      try {
-        yield* execBlockArray(node.block.body, scope);
-      } catch (e) {
-        if (e instanceof BreakSignal || e instanceof ContinueSignal || e instanceof ReturnSignal) throw e;
-        if (node.handler) {
-          const catchScope = new Scope(scope);
-          if (node.handler.param) catchScope.declare(node.handler.param.name, e);
-          yield* execBlockArray(node.handler.body.body, catchScope);
-        } else {
-          throw e;
-        }
-      } finally {
-        if (node.finalizer) {
-          yield* execBlockArray(node.finalizer.body, scope);
-        }
-      }
-      break;
-    }
-
-    case "ThrowStatement": {
-      const val = evalExpr(node.argument, scope);
-      throw (val instanceof Error ? val : new Error(typeof val === "string" ? val : convertToBanglaOutput(val)));
-    }
-
-    default:
-      break;
-  }
-}
-
-// ==================================================================
-// ============  FLOATING VARIABLE TRACE TABLE WINDOW  ==============
-// ==================================================================
-// একটা ভাসমান (draggable) উইন্ডো, যেটা স্টেপ-এক্সিকিউশনের সময় বর্তমান
-// স্কোপ-চেইনের প্রতিটি ভেরিয়েবলের নাম ও মান লাইভ দেখায়।
-
-let varTraceWindowEl = null;   // ভেরিয়েবল ট্রেস উইন্ডোর DOM এলিমেন্ট
-let varTraceDragState = null;  // ড্র্যাগ করার সময় অফসেট ধরে রাখার জন্য
-
-const VAR_TRACE_BUILTIN_NAMES = new Set([
-  "Math", "console", "JSON", "Array", "Object", "String", "Number",
-  "Boolean", "Date", "undefined", "NaN", "Infinity"
-]);
-
-function ensureVarTraceWindow() {
-  if (varTraceWindowEl) return varTraceWindowEl;
-
-  const style = document.createElement("style");
-  style.textContent = `
-    #varTraceWindow {
-      position: fixed;
-      top: 90px;
-      right: 20px;
-      width: 260px;
-      max-height: 60vh;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      user-select: none;
-    }
-    #varTraceWindow.collapsed #varTraceBody { display: none; }
-    #varTraceHeader {
-      background: #1e293b;
-      color: #fff;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: move;
-    }
-    #varTraceHeader .vtw-title { font-weight: 600; }
-    #varTraceHeader .vtw-btns button {
-      background: transparent;
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      font-size: 14px;
-      margin-left: 6px;
-      line-height: 1;
-      padding: 2px 4px;
-    }
-    #varTraceHeader .vtw-btns button:hover { opacity: 0.7; }
-    #varTraceBody {
-      overflow-y: auto;
-      padding: 4px 0;
-    }
-    #varTraceTable {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #varTraceTable th, #varTraceTable td {
-      text-align: left;
-      padding: 5px 10px;
-      border-bottom: 1px solid #e2e8f0;
-      word-break: break-all;
-    }
-    #varTraceTable th {
-      background: #f1f5f9;
-      color: #334155;
-      font-size: 12px;
-      position: sticky;
-      top: 0;
-    }
-    #varTraceTable td.vtw-name { color: #1d4ed8; font-weight: 600; }
-    #varTraceTable td.vtw-value { color: #059669; }
-    #varTraceTable tr.vtw-scope-row td {
-      background: #fef9c3;
-      font-size: 11px;
-      color: #92400e;
-      font-weight: 600;
-      padding: 4px 10px;
-    }
-    #varTraceEmpty {
-      padding: 12px 10px;
-      color: #94a3b8;
-      font-style: italic;
-      text-align: center;
-    }
-    @media (max-width: 600px) {
-      #varTraceWindow { width: 200px; top: auto; bottom: 12px; right: 12px; }
-    }
-  `;
-  document.head.appendChild(style);
-
-  const win = document.createElement("div");
-  win.id = "varTraceWindow";
-  win.innerHTML = `
-    <div id="varTraceHeader">
-      <span class="vtw-title">🔍 ভেরিয়েবল ট্রেস</span>
-      <span class="vtw-btns">
-        <button id="varTraceMinBtn" title="মিনিমাইজ/বড় করো">—</button>
-        <button id="varTraceCloseBtn" title="বন্ধ করো">✕</button>
-      </span>
-    </div>
-    <div id="varTraceBody">
-      <table id="varTraceTable">
-        <thead><tr><th>নাম</th><th>মান</th></tr></thead>
-        <tbody id="varTraceTbody"></tbody>
-      </table>
-      <div id="varTraceEmpty" style="display:none;">এখনো কোনো ভেরিয়েবল নেই</div>
-    </div>
-  `;
-  document.body.appendChild(win);
-  varTraceWindowEl = win;
-
-  const header = win.querySelector("#varTraceHeader");
-
-  const startDrag = (clientX, clientY) => {
-    const rect = win.getBoundingClientRect();
-    varTraceDragState = { offsetX: clientX - rect.left, offsetY: clientY - rect.top };
-    win.style.right = "auto";
-    win.style.bottom = "auto";
-  };
-
-  header.addEventListener("mousedown", (e) => {
-    if (e.target.closest("button")) return;
-    startDrag(e.clientX, e.clientY);
-    document.addEventListener("mousemove", onVarTraceMouseMove);
-    document.addEventListener("mouseup", onVarTraceDragEnd);
-  });
-
-  header.addEventListener("touchstart", (e) => {
-    if (e.target.closest("button")) return;
-    const t = e.touches[0];
-    startDrag(t.clientX, t.clientY);
-    document.addEventListener("touchmove", onVarTraceTouchMove, { passive: false });
-    document.addEventListener("touchend", onVarTraceDragEnd);
-  }, { passive: true });
-
-  win.querySelector("#varTraceMinBtn").addEventListener("click", () => {
-    win.classList.toggle("collapsed");
-  });
-  win.querySelector("#varTraceCloseBtn").addEventListener("click", () => {
-    win.style.display = "none";
-  });
-
-  return win;
-}
-
-function positionVarTraceWindow(x, y) {
-  const win = varTraceWindowEl;
-  if (!win) return;
-  const maxX = window.innerWidth - win.offsetWidth - 4;
-  const maxY = window.innerHeight - win.offsetHeight - 4;
-  win.style.left = Math.max(4, Math.min(x, maxX)) + "px";
-  win.style.top = Math.max(4, Math.min(y, maxY)) + "px";
-}
-
-function onVarTraceMouseMove(e) {
-  if (!varTraceDragState) return;
-  positionVarTraceWindow(e.clientX - varTraceDragState.offsetX, e.clientY - varTraceDragState.offsetY);
-}
-
-function onVarTraceTouchMove(e) {
-  if (!varTraceDragState) return;
-  e.preventDefault();
-  const t = e.touches[0];
-  positionVarTraceWindow(t.clientX - varTraceDragState.offsetX, t.clientY - varTraceDragState.offsetY);
-}
-
-function onVarTraceDragEnd() {
-  varTraceDragState = null;
-  document.removeEventListener("mousemove", onVarTraceMouseMove);
-  document.removeEventListener("mouseup", onVarTraceDragEnd);
-  document.removeEventListener("touchmove", onVarTraceTouchMove);
-  document.removeEventListener("touchend", onVarTraceDragEnd);
-}
-
-// বর্তমান স্কোপ থেকে শুরু করে বাইরের দিকে প্রতিটি স্কোপ-লেভেলের ভেরিয়েবল সংগ্রহ করে
-function collectScopeChainVars(scope) {
-  const levels = [];
-  let s = scope;
-  let depth = 0;
-  while (s) {
-    const entries = [];
-    for (const [name, value] of s.vars.entries()) {
-      if (!VAR_TRACE_BUILTIN_NAMES.has(name)) entries.push([name, value]);
-    }
-    if (entries.length) levels.push({ depth, entries });
-    s = s.parent;
-    depth++;
-  }
-  return levels;
-}
-
-function formatVarTraceValue(value) {
-  if (typeof value === "function" || (value && value.__isUserFunction__)) return "ƒ ফাংশন";
-  try {
-    return convertToBanglaOutput(value);
-  } catch (e) {
-    return String(value);
-  }
-}
-
-// scope থাকলে টেবিল রি-রেন্ডার করে, না থাকলে "খালি" অবস্থা দেখায়
-function updateVarTraceTable(scope) {
-  const win = ensureVarTraceWindow();
-  win.style.display = win.style.display === "none" ? "flex" : (win.style.display || "flex");
-  if (win.style.display !== "flex") win.style.display = "flex";
-
-  const tbody = win.querySelector("#varTraceTbody");
-  const emptyEl = win.querySelector("#varTraceEmpty");
-  const tableEl = win.querySelector("#varTraceTable");
-  tbody.innerHTML = "";
-
-  const levels = scope ? collectScopeChainVars(scope) : [];
-
-  if (!levels.length) {
-    emptyEl.style.display = "block";
-    tableEl.style.display = "none";
-    return;
-  }
-
-  emptyEl.style.display = "none";
-  tableEl.style.display = "table";
-
-  levels.forEach(({ depth, entries }) => {
-    const scopeRow = document.createElement("tr");
-    scopeRow.className = "vtw-scope-row";
-    const label = depth === 0 ? "বর্তমান স্কোপ" : `প্যারেন্ট স্কোপ (${depth})`;
-    scopeRow.innerHTML = `<td colspan="2">${label}</td>`;
-    tbody.appendChild(scopeRow);
-
-    entries.forEach(([name, value]) => {
-      const tr = document.createElement("tr");
-      const nameTd = document.createElement("td");
-      nameTd.className = "vtw-name";
-      nameTd.textContent = name;
-      const valTd = document.createElement("td");
-      valTd.className = "vtw-value";
-      valTd.textContent = formatVarTraceValue(value);
-      tr.appendChild(nameTd);
-      tr.appendChild(valTd);
-      tbody.appendChild(tr);
-    });
-  });
-}
-
-// ================== STEP-MODE UI DRIVER ==================
-
-function setStepControlsEnabled(started) {
-  const startBtn = document.getElementById("stepStartBtn");
-  const nextBtn = document.getElementById("stepNextBtn");
-  const autoBtn = document.getElementById("stepAutoBtn");
-  const resetBtn = document.getElementById("stepResetBtn");
-  if (startBtn) startBtn.disabled = started;
-  if (nextBtn) nextBtn.disabled = !started;
-  if (autoBtn) autoBtn.disabled = !started;
-  if (resetBtn) resetBtn.disabled = !started;
-}
-
-function highlightCodeLine(node) {
-  if (currentHighlightLine !== null) {
-    editor.removeLineClass(currentHighlightLine, 'background', 'step-current-line');
-    currentHighlightLine = null;
-  }
-  if (!node || !node.range) return;
-  // দ্রষ্টব্য: বাংলা কীওয়ার্ড ও ইংরেজি কীওয়ার্ডের অক্ষর-সংখ্যা আলাদা হওয়ায়
-  // চরিত্র-অফসেট মিলবে না, কিন্তু নতুন লাইন কোথায় শুরু হয় তা অপরিবর্তিত থাকে —
-  // তাই লাইন-সংখ্যা গুনে হাইলাইট করা হচ্ছে (কলাম নয়), যা নির্ভরযোগ্য।
-  const before = lastTransformedCode.slice(0, node.range[0]);
-  const lineNumber = (before.match(/\n/g) || []).length;
-  currentHighlightLine = lineNumber;
-  editor.addLineClass(lineNumber, 'background', 'step-current-line');
-  editor.scrollIntoView({ line: lineNumber, ch: 0 }, 100);
-}
-
-function showStepError(msg) {
-  appendConsoleOutput([]); // no-op guard
-  const consoleEl = document.getElementById("console");
-  if (consoleEl) consoleEl.innerText += "ভুল (Error): " + msg + "\n";
-}
-
-function startStepMode() {
-  const bnCode = editor.getValue();
-  lastTransformedCode = banglaToJS(bnCode);
-
-  let ast;
-  try {
-    ast = esprima.parseScript(lastTransformedCode, { range: true });
-  } catch (err) {
-    showStepError("সিনট্যাক্স ভুল — " + err.message);
-    return;
-  }
-
-  const output = document.getElementById("output");
-  try {
-    const flowCode = buildFlow(ast); // astNodeToFlowId / lastNodesById / lastEdges রিফ্রেশ করে
-    void flowCode;
-  } catch (err) {
-    output.innerHTML = `<p style="color:red">${err.message}</p>`;
-    return;
-  }
-
-  document.getElementById("console").innerText = "";
-  visitedFlowIds = new Set();
-  if (currentHighlightLine !== null) {
-    editor.removeLineClass(currentHighlightLine, 'background', 'step-current-line');
-    currentHighlightLine = null;
-  }
-
-  const rootScope = createRootScope();
-  stepState = {
-    generator: execBlockArray(ast.body, rootScope),
-    finished: false
-  };
-
-  renderFlowchartState(null);
-  ensureVarTraceWindow();
-  updateVarTraceTable(rootScope);
-  setStepControlsEnabled(true);
-}
-
-function stepNext() {
-  if (!stepState || stepState.finished) return;
-
-  let result;
-  try {
-    result = stepState.generator.next();
-  } catch (err) {
-    showStepError(err.message || String(err));
-    finishStepMode();
-    return;
-  }
-
-  if (result.done) {
-    finishStepMode();
-    appendConsoleOutput(["--- এক্সিকিউশন সম্পন্ন ---"]);
-    return;
-  }
-
-  const { node, scope } = result.value;
-  highlightCodeLine(node);
-  updateVarTraceTable(scope);
-
-  const flowId = astNodeToFlowId.get(node);
-  if (flowId) {
-    renderFlowchartState(flowId);
-    visitedFlowIds.add(flowId);
-  }
-}
-
-function finishStepMode() {
-  if (stepState) stepState.finished = true;
-  stopAutoPlay();
-  setStepControlsEnabled(false);
-  if (currentHighlightLine !== null) {
-    editor.removeLineClass(currentHighlightLine, 'background', 'step-current-line');
-    currentHighlightLine = null;
-  }
-}
-
-function resetStepMode() {
-  finishStepMode();
-  stepState = null;
-  visitedFlowIds = new Set();
-  renderFlowchartState(null);
-  updateVarTraceTable(null);
-  document.getElementById("console").innerText = "";
-}
-
-function toggleAutoPlay() {
-  const autoBtn = document.getElementById("stepAutoBtn");
-  if (autoPlayInterval) {
-    stopAutoPlay();
-  } else {
-    autoPlayInterval = setInterval(() => {
-      if (!stepState || stepState.finished) { stopAutoPlay(); return; }
-      stepNext();
-    }, 800);
-    if (autoBtn) autoBtn.innerText = "⏸ থামো";
-  }
-}
-
-function stopAutoPlay() {
-  if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
-  const autoBtn = document.getElementById("stepAutoBtn");
-  if (autoBtn) autoBtn.innerText = "⏩‌ প্লে করো";
-}
-
-// ================== RUN (সাধারণ, ইন্সট্যান্ট রান বাটন) ==================
+// ================== RUN ==================
 function runCode(){
   const consoleEl = document.getElementById("console");
   consoleEl.innerText = "";
@@ -1541,7 +613,7 @@ function runCode(){
   console.log = (...args)=>consoleEl.innerText+=args.join(" ")+"\n";
   try{ eval(code); } catch(err){ consoleEl.innerText+="Error: "+err.message; }
   console.log = originalLog;
-}
+} 
 
 
 
